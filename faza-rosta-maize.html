@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maize Sowing Date</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #eff6ff, #f0fdf4, #ecfdf5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      width: 100%; max-width: 450px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      padding: 40px 24px;
+      border-radius: 24px;
+      border: 1px solid #d1fae5;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .crop-icon { font-size: 40px; margin-bottom: 10px; }
+    h1 { color: #065f46; margin-bottom: 8px; font-size: 26px; }
+    .subtitle { color: #6b7280; margin-bottom: 25px; }
+
+    .calendar-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 30px; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .arrow { cursor: pointer; color: #059669; font-weight: bold; padding: 5px 10px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .weekday { font-size: 12px; color: #9ca3af; font-weight: 600; }
+    .day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; font-size: 14px; }
+    .day:hover:not(.empty) { background: #f0fdf4; }
+    .day.selected { background: #059669 !important; color: white; font-weight: bold; }
+    
+    .save-btn {
+      width: 100%; padding: 16px; background: #059669; color: white; border: none;
+      border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; opacity: 0.5; pointer-events: none;
+    }
+    .save-btn.active { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="crop-icon">🌽</div>
+  <h1>Maize Sowing</h1>
+  <p class="subtitle">When did you plant your corn?</p>
+
+  <div class="calendar-card">
+    <div class="calendar-header">
+      <div class="arrow" id="prev">&lt;</div>
+      <h2 id="monthYear" style="font-size: 18px;"></h2>
+      <div class="arrow" id="next">&gt;</div>
+    </div>
+    <div class="calendar-grid" id="calendarGrid">
+      <div class="weekday">Su</div><div class="weekday">Mo</div><div class="weekday">Tu</div>
+      <div class="weekday">We</div><div class="weekday">Th</div><div class="weekday">Fr</div><div class="weekday">Sa</div>
+    </div>
+  </div>
+
+  <button id="saveBtn" class="save-btn">Save & View Growth</button>
+</div>
+
+<script>
+  const grid = document.getElementById("calendarGrid");
+  const monthYearLabel = document.getElementById("monthYear");
+  const saveBtn = document.getElementById("saveBtn");
+  let viewDate = new Date();
+  let selectedDate = null;
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  function render() {
+    grid.querySelectorAll('.day').forEach(d => d.remove());
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    monthYearLabel.textContent = `${months[month]} ${year}`;
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      const div = document.createElement("div"); div.className = "day empty"; grid.appendChild(div);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const div = document.createElement("div"); div.className = "day"; div.textContent = d;
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if (selectedDate === dateStr) div.classList.add("selected");
+      div.onclick = () => { selectedDate = dateStr; saveBtn.classList.add("active"); render(); };
+      grid.appendChild(div);
+    }
+  }
+
+  document.getElementById("prev").onclick = () => { viewDate.setMonth(viewDate.getMonth()-1); render(); };
+  document.getElementById("next").onclick = () => { viewDate.setMonth(viewDate.getMonth()+1); render(); };
+  
+  saveBtn.onclick = () => {
+    localStorage.setItem("sowingDate", selectedDate);
+    localStorage.setItem("selectedCrop", "Maize");
+    window.location.href = "Page4-maize.html";
+  };
+  render();
+</script>
+</body>
+</html>

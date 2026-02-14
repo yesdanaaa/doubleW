@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome Back - Log In</title>
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #eff6ff, #f0fdfa, #ecfdf5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      color: #1f2937;
+    }
+    .container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .slogan {
+      font-size: 1.1rem;
+      color: #15803d;
+      letter-spacing: 1px;
+      font-weight: 500;
+      margin: 0 0 40px 0;
+      text-align: center;
+      width: 100%;
+      opacity: 0;
+      animation: fadeIn 1.2s forwards 0.4s;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    .form-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 32px 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      border: 1px solid #d1fae5;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 0.8s forwards 0.6s;
+    }
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1 {
+      font-size: 2.25rem;
+      color: #065f46;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #4b5563;
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+    }
+    .checkbox-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.875rem;
+      color: #4b5563;
+      margin-bottom: 24px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .checkbox-label input {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      accent-color: #16a34a;
+    }
+    .forgot-link {
+      color: #16a34a;
+      text-decoration: none;
+    }
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover {
+      background: #15803d;
+    }
+    .signup-link {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+    .signup-link a {
+      color: #16a34a;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .signup-link a:hover {
+      text-decoration: underline;
+    }
+    .info-text {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 32px;
+      opacity: 0;
+      animation: fadeIn 1s forwards 1.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <p class="slogan">Save water. Save world.</p>
+
+    <div class="form-card">
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Log in to manage your irrigation efficiently</p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="you@example.com" 
+            required 
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="••••••••" 
+            required 
+            autocomplete="current-password"
+          >
+        </div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember">
+            Remember me
+          </label>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="submit-btn">Log In</button>
+      </form>
+
+      <div class="signup-link">
+        Don't have an account? 
+        <a href="index.html">Sign up</a>
+      </div>
+    </div>
+
+    <p class="info-text">
+      By logging in, you agree to our smart irrigation practices<br>
+      for a more sustainable future
+    </p>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || !password) {
+        alert('Please fill in email and password');
+        return;
+      }
+
+      const savedEmail = localStorage.getItem('userEmail');
+
+      if (savedEmail && savedEmail === email) {
+        window.location.href = 'frontend.html';
+      } else {
+        localStorage.setItem('userEmail', email);
+        window.location.href = 'frontend.html';
+      }
+    });
+  </script>
+
+</body>
+</html>

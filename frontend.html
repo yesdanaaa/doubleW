@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+<title>Главный экран фермы</title>
+
+<style>
+  /* Карточка результата */
+.result-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0f2f1;
+    display: none;
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2f8f5b;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.result-main-value {
+    text-align: center;
+    padding: 15px 0;
+}
+
+.water-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2e7d32;
+    line-height: 1;
+}
+
+.water-unit {
+    color: #888;
+    font-size: 1rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+}
+
+.info-item {
+    font-size: 12px;
+    color: #666;
+}
+
+.info-item b {
+    display: block;
+    color: #333;
+    font-size: 14px;
+}
+
+.ai-explanation {
+    background: #f1f8e9;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #388e3c;
+    border-left: 4px solid #4caf50;
+    margin-top: 15px;
+}
+.loading-spinner {
+    display: none;
+    margin: 10px auto;
+    color: #2f8f5b;
+    font-size: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+  .main-action {
+  margin-top: 40px;
+  text-align: left;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding-top: 20px;
+  padding-bottom: 80px;
+  padding-left: 15px;
+  padding-right: 15px;
+  background: #f4faf6;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+/*Календарь*/
+.top-calendar 
+{
+    display: flex;
+    position: relative;
+    z-index: 10;
+    margin-top: 15px;
+}
+
+.calendar-wrapper {
+  width: 100%;
+  max-width: 300px;
+  margin: 10px auto;
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0f2f1;
+  text-align: center;
+  margin-bottom: 15px;
+}
+h2 {
+  color: #2f8f5b;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.month-year {
+  font-size: 12px;
+  font-weight: 600;
+  color: #00000067;
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+
+.calendar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.dates {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  margin: 0 10px;
+}
+
+.date {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.date span:first-child { 
+  font-size: 8px; 
+  text-transform: uppercase;
+  color: #888;
+}
+
+.date span:last-child { 
+  font-size: 13px; 
+  font-weight: bold;
+}
+.date.selected {
+  background: #e3f2fd !important;
+  border-color: #2196f3;
+}
+.date.sowing {
+  background: #e8f5e9 !important;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.date.last-watering {
+  background: #3b82f6 !important;
+  color: white !important;
+}
+
+.arrow {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: #2f8f5b;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.arrow:hover {
+  background: #256f48;
+  transform: scale(1.1);
+}
+
+.date:hover {
+  transform: translateY(-4px);
+}
+
+
+.arrow-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.arrow-btn:active {
+  transform: scale(0.9);
+}
+
+.result {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
+  opacity: 0;
+  transition: 0.4s;
+}
+
+.circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+}
+
+.circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.center-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+button.calculate-btn {
+  padding: 15px 35px;
+  font-size: 18px;
+  border-radius: 30px;
+  border: none;
+  background: #2e7d32;
+  color: white;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+}
+
+button.calculate-btn:active {
+  transform: scale(0.97);
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  height: 55px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  z-index: 1000;
+  border: 1px solid #f0f0f0;
+}
+.nav-item {
+  color: #d0d0d0b9;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+}
+.nav-item i {
+  font-size: 28px;
+}
+.nav-item.active {
+  background: #2f8f5b;
+}
+
+</style>
+
+</head>
+<body>
+  
+  <div class="bottom-nav">
+    <a href="frontend.html" class="nav-item active">
+      <i class='bx bx-home'></i>
+    </a>
+    <a href="chat.html" class="nav-item">
+      <i class='bx bx-chat'></i>
+    </a>
+    <a href="account.html" class="nav-item">
+      <i class='bx bx-user'></i>
+    </a>
+  </div>
+
+   <div class="calendar-wrapper">
+    <h2>Watering Log</h2>
+    <div class="month-year" id="monthYear"></div>
+
+
+
+    <div class="calendar-container">
+      <button class="arrow" id="prev">❮</button>
+      <div class="dates" id="dates"></div>
+      <button class="arrow" id="next">❯</button>
+    </div>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const datesContainer = document.getElementById("dates");
+    const prevBtn        = document.getElementById("prev");
+    const nextBtn        = document.getElementById("next");
+    const monthYearEl = document.getElementById("monthYear");
+
+    function updateMonthYear() {
+      monthYearEl.textContent = startDate.toLocaleDateString("ru-RU", {
+        month: "long",
+        year: "numeric"
+      });
+}
+    if (!datesContainer) {
+      console.error("Element with id='dates' not found");
+      return;
+    }
+    if (!prevBtn || !nextBtn) {
+      console.error("Prev/next buttons not found");
+      return;
+    }
+
+    let startDate = new Date();
+    startDate.setDate(startDate.getDate() - 3);
+
+    let selectedDates = JSON.parse(localStorage.getItem("selectedDates")) || [];
+
+    const lastWateringDate = localStorage.getItem("lastWateringDate");
+    if (lastWateringDate && !selectedDates.includes(lastWateringDate)) {
+      selectedDates.push(lastWateringDate);
+    }
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    } 
+
+    function renderDates() {
+      updateMonthYear();
+      datesContainer.innerHTML = "";
+
+      const sowingDate = localStorage.getItem("sowingDate");
+      const lastWateringDate = localStorage.getItem("lastWateringDate");
+      let manualSelected = JSON.parse(localStorage.getItem("selectedDates")) || [];
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+
+        const formatted = formatDate(date);
+
+        const dateDiv = document.createElement("div");
+        dateDiv.classList.add("date");
+
+        if (formatted === sowingDate) {
+          dateDiv.classList.add("sowing");
+        } else if (formatted === lastWateringDate) {
+          dateDiv.classList.add("last-watering");
+        } else if (manualSelected.includes(formatted)) {
+          dateDiv.classList.add("selected");
+        }
+
+        dateDiv.innerHTML = `
+          <span>${date.toLocaleDateString("ru-RU", { weekday: "short" })}</span>
+          <span>${date.getDate()}</span>
+        `;
+
+        dateDiv.addEventListener("click", () => {
+
+          if (manualSelected.includes(formatted)) {
+              manualSelected = manualSelected.filter(d => d !== formatted);
+              dateDiv.classList.remove("selected");
+
+            if (localStorage.getItem("lastWateringDate") === formatted) {
+              localStorage.removeItem("lastWateringDate");
+            }
+
+        } else {
+          manualSelected.push(formatted);
+          dateDiv.classList.add("selected");
+
+          localStorage.setItem("lastWateringDate", formatted);
+        }
+
+        localStorage.setItem("selectedDates", JSON.stringify(manualSelected));
+        renderDates();
+      });
+
+      console.log(localStorage.getItem("selectedDates"));
+
+
+      datesContainer.appendChild(dateDiv);
+  }
+}
+
+prevBtn.addEventListener("click", () => {
+  startDate.setDate(startDate.getDate() - 7);
+  renderDates();
+});
+
+nextBtn.addEventListener("click", () => {
+  startDate.setDate(startDate.getDate() + 7);
+  renderDates();
+});
+
+    renderDates();
+});
+</script>
+
+<div class="main-action">
+    <div class="center-block">
+        <div class="circle">
+            <img id="gif" src="круглишок.gif" alt="GIF">
+        </div>
+
+        <div style="text-align: center; margin-bottom: 10px;">
+            <label style="font-size: 12px; color: #888;">Calculation Date:</label><br>
+            <input type="date" id="simDate" style="border: 1px solid #ddd; border-radius: 8px; padding: 5px;">
+        </div>
+
+        <button class="calculate-btn" onclick="calculate()">Calculate Irrigation</button>
+        <i class='bx bx-loader-alt loading-spinner' id="loader"></i>
+    </div>
+
+    <div id="resultCard" class="result-card">
+        <div class="result-header">
+            <i class='bx bx-droplet'></i>
+            <span>Recommended Watering</span>
+        </div>
+
+        <div class="result-main-value">
+            <span class="water-number" id="waterVal">0.0</span>
+            <span class="water-unit">mm/m²</span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                Phase
+                <b id="phaseName">-</b>
+            </div>
+            <div class="info-item">
+                Progress
+                <b id="phaseProgress">0%</b>
+            </div>
+            <div class="info-item">
+                Days from Sowing
+                <b id="daysSowing">0</b>
+            </div>
+            <div class="info-item">
+                Last Watered
+                <b id="daysLastWater">0 days ago</b>
+            </div>
+        </div>
+
+        <div class="ai-explanation" id="aiText">
+            AI is analyzing weather and crop data...
+        </div>
+    </div>
+</div>
+
+<script>
+  const savedDates = JSON.parse(localStorage.getItem("irrigationDates")) || [];
+  const crop = localStorage.getItem("crop") || "corn";
+
+async function calculate() {
+
+  const resultCard = document.getElementById("resultCard");
+  const loader = document.getElementById("loader");
+  const btn = document.querySelector(".calculate-btn");
+
+  // Подготовка интерфейса
+  resultCard.style.display = "none";
+  loader.style.display = "block";
+  btn.style.opacity = "0.5";
+  btn.disabled = true;
+    
+
+  let sowingDate = localStorage.getItem("sowingDate");
+
+  if (!sowingDate) {
+    result.textContent = "Сначала укажите дату посева в профиле";
+    result.style.opacity = 1;
+    return;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(sowingDate)) {
+    console.log("sowingDate уже в правильном формате:", sowingDate);
+  } else {
+    try {
+      const dateObj = new Date(sowingDate);
+      if (!isNaN(dateObj.getTime())) {
+        sowingDate = dateObj.toISOString().split('T')[0];
+        localStorage.setItem("sowingDate", sowingDate);
+        console.log("Исправили sowingDate на правильный формат:", sowingDate);
+      } else {
+        result.textContent = "Дата посева в неверном формате — укажите заново в профиле";
+        result.style.opacity = 1;
+        return;
+      }
+    } catch (e) {
+      result.textContent = "Ошибка формата даты посева — укажите заново";
+      result.style.opacity = 1;
+      return;
+    }
+  }
+
+  const irrigationDates = JSON.parse(localStorage.getItem("selectedDates") || "[]");
+  let lastWateringDate = null;
+
+
+ if (irrigationDates.length === 0) {
+    result.textContent = "Отметьте хотя бы один день полива в календаре";
+    result.style.opacity = 1;
+    return;
+  }
+
+  lastWateringDate = irrigationDates.reduce((max, current) => {
+    return current > max ? current : max;
+  }, irrigationDates[0]);
+
+  console.log("Найденный последний полив:", lastWateringDate);
+
+  let simDateInput = document.getElementById("simDate").value;
+  let simulated = simDateInput || today.toISOString().split('T')[0];
+
+  const payload = {
+    sowing_date: localStorage.getItem("sowingDate"),
+    simulated_date: simulated,
+    lastWateringDate: lastWateringDate,
+    crop: localStorage.getItem("crop") === "maize" ? 0 : 1
+  };
+
+
+  try {
+    const response = await fetch("http://192.168.0.15:5000/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+
+
+    const data = await response.json();
+
+      document.getElementById("waterVal").textContent = data.water_mm;
+      document.getElementById("phaseName").textContent = data.phase_name;
+      document.getElementById("phaseProgress").textContent = (data.phase_progress * 100).toFixed(0) + "%";
+      document.getElementById("daysSowing").textContent = data.days_since;
+      document.getElementById("daysLastWater").textContent = data.days_since_last_water + " days ago";
+      document.getElementById("aiText").textContent = data.explanation;
+
+      loader.style.display = "none";
+      resultCard.style.display = "block";
+
+ 
+
+} catch (err) {
+        result.textContent = "Не удалось подключиться к расчёту: " + err.message;
+        console.error(err);
+    }}
+</script>
+  <p style="margin: 0; font-size: 13px; color: #565656b0;text-align: center;">Powered by Open-Meteo Weather Data</p>
+  <p style="margin: 0; font-size: 12px; color: #2f8f5b; text-align: center;">
+    Save water. Save world.
+  </p>
+</body>
+</html>

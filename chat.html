@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - Choose</title>
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(to bottom, #eff6ff, #f0fdfa, #ecfdf5);
+  min-height: 100vh;
+  padding: 20px 16px 100px;
+  color: #1f2937;
+}
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+}
+h1 {
+  font-size: 2.25rem;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+.subtitle {
+  color: #4b5563;
+  margin-bottom: 32px;
+}
+.card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+  border: 1px solid #d1fae5;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  transform: translateY(-2px);
+}
+.card.green {
+  border-color: #bbf7d0;
+}
+.card.blue {
+  border-color: #bfdbfe;
+}
+.card-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.icon-wrapper {
+  padding: 16px;
+  border-radius: 9999px;
+}
+.green-icon {
+  background: #d1fae5;
+}
+.blue-icon {
+  background: #dbeafe;
+}
+i.bx {
+  font-size: 32px;
+  line-height: 1;
+}
+.text h2 {
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+  color: #1f2937;
+}
+.text p {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+.online-info {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 8px;
+}
+.avatars {
+  display: flex;
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  border: 2px solid white;
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  background: #d1fae5;
+  color: #065f46;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 9999px;
+}
+.tips {
+  margin-top: 32px;
+  background: linear-gradient(to right, #d1fae5, #dbeafe);
+  border-radius: 12px;
+  padding: 24px;
+}
+.tips h3 {
+  font-size: 1.125rem;
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+.tips ul {
+  list-style: none;
+  font-size: 0.875rem;
+  color: #374151;
+}
+.tips li {
+  margin-bottom: 8px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  height: 55px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  z-index: 1000;
+  border: 1px solid #f0f0f0;
+}
+.nav-item {
+  color: #d0d0d0b9;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+}
+.nav-item i {
+  font-size: 28px;
+}
+.nav-item.active {
+  background: #2f8f5b;
+}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div style="margin-bottom: 32px;">
+      <h1>Chat</h1>
+      <p class="subtitle">Connect with farmers and get AI assistance</p>
+    </div>
+
+    <div>
+      <!-- Farmers Community -->
+      <div class="card card-green" onclick="window.location.href='chat-farmers.html'">
+        <div class="card-inner">
+          <div class="left">
+            <div class="icon-wrapper green-icon">
+              <i class="bx bx-group" style="color: #16a34a;"></i>
+            </div>
+            <div class="text">
+              <h2>Farmers Community</h2>
+              <div class="online-info">
+                <div class="avatars">
+                  <div class="avatar" style="background: #3b82f6;"></div>
+                  <div class="avatar" style="background: #10b981;"></div>
+                  <div class="avatar" style="background: #a855f7;"></div>
+                </div>
+                <span style="font-size: 0.75rem; color: #6b7280;">127 members online</span>
+              </div>
+            </div>
+          </div>
+          <i class="bx bx-chevron-right" style="font-size: 24px; color: #9ca3af;"></i>
+        </div>
+      </div>
+
+      <div class="card card-blue" onclick="window.location.href='chat-bot.html'">
+        <div class="card-inner">
+          <div class="left">
+            <div class="icon-wrapper blue-icon">
+              <i class="bx bx-bot" style="color: #2563eb;"></i>
+            </div>
+            <div class="text">
+              <h2>AI Assistant</h2>
+              <div style="margin-top: 8px;">
+                <span class="status">
+                  <span class="dot"></span>
+                  Online
+                </span>
+              </div>
+            </div>
+          </div>
+          <i class="bx bx-chevron-right" style="font-size: 24px; color: #9ca3af;"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="tips">
+      <h3>Quick Tips</h3>
+      <ul>
+        <li>• Share your irrigation experiences with other farmers</li>
+        <li>• Ask the AI about optimal watering schedules</li>
+        <li>• Learn about water conservation techniques</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="frontend.html" class="nav-item">
+      <i class='bx bx-home'></i>
+    </a>
+    <a href="chat.html" class="nav-item active">
+      <i class='bx bx-chat'></i>
+    </a>
+    <a href="account.html" class="nav-item">
+      <i class='bx bx-user'></i>
+    </a>
+  </div>
+
+</body>
+</html>
