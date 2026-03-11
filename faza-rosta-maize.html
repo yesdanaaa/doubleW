@@ -68,6 +68,7 @@
 </div>
 
 <script>
+  const API_BASE = 'https://doublew.onrender.com';
   const grid = document.getElementById("calendarGrid");
   const monthYearLabel = document.getElementById("monthYear");
   const saveBtn = document.getElementById("saveBtn");
@@ -98,12 +99,51 @@
   document.getElementById("prev").onclick = () => { viewDate.setMonth(viewDate.getMonth()-1); render(); };
   document.getElementById("next").onclick = () => { viewDate.setMonth(viewDate.getMonth()+1); render(); };
   
-  saveBtn.onclick = () => {
-    localStorage.setItem("sowingDate", selectedDate);
-    localStorage.setItem("selectedCrop", "Maize");
-    window.location.href = "Page4-maize.html";
+  saveBtn.onclick = async () => {
+  if (!selectedDate) {
+    alert("Select the sowing date");
+    return;
+  }
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert("Log in to your account");
+    window.location.href = 'login.html';
+    return;
+  }
+  try {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      const response = await fetch(`${API_BASE}/set_sowing_date`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ sowing_date: selectedDate })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("sowingDate", selectedDate);
+        localStorage.setItem("selectedCrop", "Wheat");
+        alert("Sowing date saved!");
+        window.location.href = "Page4-wheat.html";
+      } else {
+        alert(data.error || "Save error");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Unable to save date. Please check internet connection.");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save & View Growth";
+    }
   };
+
   render();
+
 </script>
 </body>
 </html>

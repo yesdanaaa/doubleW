@@ -7,6 +7,11 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
+    <!-- Подключаем переводы и менеджер языка -->
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <script src="language-switcher.js"></script>
+
   <style>
 * {
   margin: 0;
@@ -174,8 +179,8 @@ i.bx {
 
   <div class="container">
     <div style="margin-bottom: 32px;">
-      <h1>Chat</h1>
-      <p class="subtitle">Connect with farmers and get AI assistance</p>
+      <h1 id="pageTitle">Chat</h1>
+      <p class="subtitle" id="pageSubtitle"></p>
     </div>
 
     <div>
@@ -187,7 +192,7 @@ i.bx {
               <i class="bx bx-group" style="color: #16a34a;"></i>
             </div>
             <div class="text">
-              <h2>Farmers Community</h2>
+              <h2 id="farmerChat"></h2>
               <div class="online-info">
                 <div class="avatars">
                   <div class="avatar" style="background: #3b82f6;"></div>
@@ -202,6 +207,7 @@ i.bx {
         </div>
       </div>
 
+      <!-- AI Assistant -->
       <div class="card card-blue" onclick="window.location.href='chat-bot.html'">
         <div class="card-inner">
           <div class="left">
@@ -209,11 +215,11 @@ i.bx {
               <i class="bx bx-bot" style="color: #2563eb;"></i>
             </div>
             <div class="text">
-              <h2>AI Assistant</h2>
+              <h2 id="ai"></h2>
               <div style="margin-top: 8px;">
                 <span class="status">
                   <span class="dot"></span>
-                  Online
+                  <span id="statusAI"></span>
                 </span>
               </div>
             </div>
@@ -224,11 +230,11 @@ i.bx {
     </div>
 
     <div class="tips">
-      <h3>Quick Tips</h3>
+      <h3 id="tips"></h3>
       <ul>
-        <li>• Share your irrigation experiences with other farmers</li>
-        <li>• Ask the AI about optimal watering schedules</li>
-        <li>• Learn about water conservation techniques</li>
+        <li id="share"></li>
+        <li id="ask"></li>
+        <li id="learn"></li>
       </ul>
     </div>
   </div>
@@ -245,5 +251,55 @@ i.bx {
     </a>
   </div>
 
+  <script>
+    // Функция обновления переводов
+    function updatePageTranslations() {
+      console.log('Updating translations...');
+      
+      // Обновляем заголовки
+      document.getElementById('pageTitle').textContent = __('chat.title');
+      document.getElementById('pageSubtitle').textContent = __('chat.subtitle');
+      
+      // Обновляем карточки чатов
+      document.getElementById('farmerChat').textContent = __('chat.farmerChat');
+      document.getElementById('ai').textContent = __('chat.aiAssistant');
+      document.getElementById('statusAI').textContent = __('chat.statusAI');
+      
+      // Обновляем советы
+      document.getElementById('tips').textContent = __('chat.quickTips');
+      document.getElementById('share').textContent = __('chat.shareX');
+      document.getElementById('ask').textContent = __('chat.askQ');
+      document.getElementById('learn').textContent = __('chat.learnM');
+    }
+
+    // Функция смены языка
+    function changeLanguage(lang) {
+      if (window.langManager && window.langManager.setLanguage(lang)) {
+        console.log('Language changed to:', lang);
+        updatePageTranslations();
+      }
+    }
+
+    // Инициализация при загрузке страницы
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('Page loaded, initializing translations...');
+      
+      // Получаем сохраненный язык или используем английский по умолчанию
+      const savedLang = localStorage.getItem('appLanguage') || 'en';
+      console.log('Saved language:', savedLang);
+      
+      // Подписываемся на изменения языка
+      if (window.langManager) {
+        console.log('Language manager found');
+        window.langManager.subscribe(updatePageTranslations);
+        
+        // Устанавливаем язык
+        window.langManager.setLanguage(savedLang);
+      } else {
+        console.warn('Language manager not found, using direct translation');
+        updatePageTranslations();
+      }
+    });
+  </script>
 </body>
 </html>

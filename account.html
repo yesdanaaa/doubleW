@@ -7,6 +7,11 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
+  <!-- Подключаем переводы и менеджер языка -->
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <script src="language-switcher.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -43,53 +48,215 @@
       border: 1px solid #d1fae5;
       box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
     }
-    .avatar-section {
-      text-align: center;
-      margin-bottom: 24px;
+    
+    .avatar-wrapper {
+      position: relative;
+      width: fit-content;
+      margin: 0 auto 20px;
     }
-    .avatar-section p {
-      font-size: 0.875rem;
-      color: #4b5563;
-      margin-bottom: 12px;
-    }
-    .avatars {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-    }
-    .avatar-btn {
-      width: 64px;
-      height: 64px;
-      border-radius: 9999px;
+    
+    .main-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #16a34a);
       display: flex;
       align-items: center;
       justify-content: center;
-      border: none;
+      border: 4px solid white;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .main-avatar i {
+      font-size: 50px;
+      color: white;
+    }
+    
+    .edit-avatar-btn {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 32px;
+      height: 32px;
+      background: white;
+      border: 2px solid #16a34a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    
+    .edit-avatar-btn:hover {
+      transform: scale(1.1);
+      background: #f0fdf4;
+    }
+    
+    .edit-avatar-btn i {
+      font-size: 18px;
+      color: #16a34a;
+    }
+    
+    .avatar-drop {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px) scale(0.9);
+      width: 280px;
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 100;
+      border: 2px solid #86efac;
+    }
+    
+    .avatar-drop::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-left: 2px solid #86efac;
+      border-top: 2px solid #86efac;
+    }
+    
+    .avatar-drop.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(15px) scale(1);
+    }
+    
+    .avatar-drop h4 {
+      text-align: center;
+      color: #065f46;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    
+    .avatar-options {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    
+    .avatar-option {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
+      background: linear-gradient(135deg, #e0f2fe, #dcfce7);
     }
-    .avatar-btn.selected {
+    
+    .avatar-option:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 0 4px #22c55e;
     }
-    .avatar-btn:not(.selected) {
-      opacity: 0.6;
+    
+    .avatar-option.selected {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.3);
     }
-    .avatar-btn:hover:not(.selected) {
+    
+    .avatar-option i {
+      font-size: 30px;
+    }
+    
+    .language-selector {
+      position: relative;
+      margin-top: 10px;
+    }
+    
+    .current-language {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+      min-width: 120px;
+    }
+    
+    .current-language span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .language-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      margin-top: 5px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border: 1px solid #e5e7eb;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.2s;
+      z-index: 50;
+    }
+    
+    .language-dropdown.show {
       opacity: 1;
-      transform: scale(1.05);
+      visibility: visible;
+      transform: translateY(0);
     }
-    .avatar-icon {
-      font-size: 32px;
+    
+    .language-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
     }
+    
+    .language-option:hover {
+      background: #f3f4f6;
+    }
+    
+    .language-option:first-child {
+      border-radius: 12px 12px 0 0;
+    }
+    
+    .language-option:last-child {
+      border-radius: 0 0 12px 12px;
+    }
+    
+    .language-option.active {
+      background: #e6f7e6;
+      color: #16a34a;
+    }
+
     .user-name {
       font-size: 1.75rem;
       color: #1f2937;
       margin: 12px 0 4px;
+      text-align: center;
     }
     .user-email {
       color: #4b5563;
       margin-bottom: 16px;
+      text-align: center;
     }
     .crop-tag {
       display: inline-block;
@@ -98,6 +265,8 @@
       color: #065f46;
       border-radius: 9999px;
       font-size: 0.875rem;
+      margin: 0 auto;
+      width: fit-content;
     }
     .stats-card {
       background: linear-gradient(to bottom right, #3b82f6, #16a34a);
@@ -176,156 +345,332 @@
       background: #fef2f2;
     }
 
-.bottom-nav {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 85%;
-  height: 55px;
-  background: #ffffff;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border-radius: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  z-index: 1000;
-  border: 1px solid #f0f0f0;
-}
-.nav-item {
-  color: #d0d0d0b9;
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-}
-.nav-item i {
-  font-size: 28px;
-}
-.nav-item.active {
-  background: #2f8f5b;
-}
+    /* Нижняя навигация - только иконки */
+    .bottom-nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 85%;
+      height: 55px;
+      background: #ffffff;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      z-index: 1000;
+      border: 1px solid #f0f0f0;
+    }
+    .nav-item {
+      color: #d0d0d0;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-item i {
+      font-size: 28px;
+    }
+    .nav-item.active {
+      background: #2f8f5b;
+      color: white;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div style="margin-bottom: 32px;">
-      <h1>Profile</h1>
-      <p class="subtitle">Manage your account settings</p>
+      <h1 id="pageTitle"></h1>
+      <p class="subtitle" id="pageSubtitle"></p>
     </div>
 
     <div class="profile-card">
-      <div class="avatar-section">
-        <p>Choose your avatar</p>
-        <div class="avatars">
-          <button class="avatar-btn" data-type="water" onclick="changeAvatar('water')">
-            <i class="bx bx-droplet avatar-icon" style="color: #2563eb;"></i>
-          </button>
-          <button class="avatar-btn" data-type="earth" onclick="changeAvatar('earth')">
-            <i class="bx bx-globe avatar-icon" style="color: #16a34a;"></i>
-          </button>
-          <button class="avatar-btn" data-type="plant" onclick="changeAvatar('plant')">
-            <i class="bx bx-leaf avatar-icon" style="color: #059669;"></i>
-          </button>
+      <div class="avatar-wrapper">
+        <div class="main-avatar" id="mainAvatar">
+          <i class="bx bx-droplet" id="avatarIcon"></i>
+        </div>
+        <div class="edit-avatar-btn" onclick="toggleAvatarDropdown()">
+          <i class='bx bx-pencil'></i>
+        </div>
+        
+        <div class="avatar-drop" id="avatarDropdown">
+          <h4 id="avatarChoose"></h4>
+          <div class="avatar-options">
+            <div class="avatar-option" data-type="water" onclick="changeAvatar('water')">
+              <i class="bx bx-droplet" style="color: #2563eb;"></i>
+            </div>
+            <div class="avatar-option" data-type="earth" onclick="changeAvatar('earth')">
+              <i class="bx bx-globe" style="color: #16a34a;"></i>
+            </div>
+            <div class="avatar-option" data-type="plant" onclick="changeAvatar('plant')">
+              <i class="bx bx-leaf" style="color: #059669;"></i>
+            </div>
+          </div>
         </div>
       </div>
 
       <div style="text-align: center;">
         <h2 class="user-name" id="userNameDisplay"></h2>
         <p class="user-email" id="userEmailDisplay"></p>
-        <div class="crop-tag" id="cropDisplay">🌾 Farmer</div>
+        <div class="crop-tag" id="cropDisplay"></div>
       </div>
     </div>
 
     <div class="stats-card">
-      <h3>Your Impact</h3>
+      <h3 id="impactTitle"></h3>
       <div class="stats-grid">
         <div>
-          <div class="stat-value">0</div>
-          <div class="stat-label">Days tracked</div>
+          <div class="stat-value" id="daysTracked">0</div>
+          <div class="stat-label" id="daysLabel"></div>
         </div>
         <div>
-          <div class="stat-value">0L</div>
-          <div class="stat-label">Water saved</div>
+          <div class="stat-value" id="waterSaved">0L</div>
+          <div class="stat-label" id="waterLabel"></div>
         </div>
       </div>
     </div>
 
     <div class="menu-card">
-      <button class="menu-item">
+      <button class="menu-item" onclick="openSettings()">
         <i class="bx bx-cog menu-icon"></i>
-        <span class="menu-label">App Settings</span>
+        <span class="menu-label" id="settingsLabel"></span>
         <i class="bx bx-chevron-right" style="color: #9ca3af;"></i>
       </button>
-      <button class="menu-item">
+      <button class="menu-item" onclick="openPrivacy()">
         <i class="bx bx-shield menu-icon"></i>
-        <span class="menu-label">Privacy and Security</span>
+        <span class="menu-label" id="privacyLabel"></span>
         <i class="bx bx-chevron-right" style="color: #9ca3af;"></i>
       </button>
-      <button class="menu-item">
+      <button class="menu-item" onclick="openHelp()">
         <i class="bx bx-help-circle menu-icon"></i>
-        <span class="menu-label">Help</span>
+        <span class="menu-label" id="helpLabel"></span>
         <i class="bx bx-chevron-right" style="color: #9ca3af;"></i>
       </button>
-      <button class="menu-item">
-        <i class="bx bx-globe menu-icon"></i>
-        <span class="menu-label">App Language</span>
-        <i class="bx bx-chevron-right" style="color: #9ca3af;"></i>
-      </button>
+      
+      <div class="menu-item" style="cursor: default; padding: 0;">
+        <div style="display: flex; align-items: center; width: 100%; padding: 16px;">
+          <i class="bx bx-globe menu-icon"></i>
+          <span class="menu-label" style="flex: 1;" id="languageLabel"></span>
+          <div class="language-selector">
+            <div class="current-language" onclick="toggleLanguageDropdown(event)">
+              <span>
+                <i class='bx bx-flag' id="currentLangFlag"></i>
+                <span id="currentLangText">English</span>
+              </span>
+              <i class='bx bx-chevron-down' id="langArrow"></i>
+            </div>
+            <div class="language-dropdown" id="languageDropdown">
+              <div class="language-option" data-lang="en" onclick="changeLanguage('en')">
+                <i class='bx bx-flag'></i>
+                English
+              </div>
+              <div class="language-option" data-lang="ru" onclick="changeLanguage('ru')">
+                <i class='bx bx-flag'></i>
+                Русский
+              </div>
+              <div class="language-option" data-lang="kz" onclick="changeLanguage('kz')">
+                <i class='bx bx-flag'></i>
+                Қазақша
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="slogan">
-      Save water. Save world.
-    </div>
+    <div class="slogan" id="slogan"></div>
 
-    <button class="signout-btn" onclick="signOut()">
-      Sign Out
-    </button>
+    <button class="signout-btn" onclick="signOut()" id="signOutBtn"></button>
   </div>
 
+  <!-- Нижняя навигация - только иконки, без текста -->
   <div class="bottom-nav">
-    <a href="frontend.html" class="nav-item">
+    <a href="frontend.html" class="nav-item" id="navHome">
       <i class='bx bx-home'></i>
     </a>
-    <a href="chat.html" class="nav-item">
+    <a href="chat.html" class="nav-item" id="navChat">
       <i class='bx bx-chat'></i>
     </a>
-    <a href="account.html" class="nav-item active">
+    <a href="account.html" class="nav-item active" id="navProfile">
       <i class='bx bx-user'></i>
     </a>
   </div>
 
   <script>
-    function loadUserData() {
+    const API_BASE = 'https://doublew.onrender.com';
+    const token = localStorage.getItem('token');
+
+    // Функция обновления переводов
+    function updatePageTranslations() {
+      document.getElementById('pageTitle').textContent = __('profile.title');
+      document.getElementById('pageSubtitle').textContent = __('profile.subtitle');
+      document.getElementById('avatarChoose').textContent = __('profile.chooseAvatar');
+      document.getElementById('impactTitle').textContent = __('profile.yourImpact');
+      document.getElementById('daysLabel').textContent = __('profile.daysTracked');
+      document.getElementById('waterLabel').textContent = __('profile.waterSaved');
+      document.getElementById('settingsLabel').textContent = __('profile.appSettings');
+      document.getElementById('privacyLabel').textContent = __('profile.privacy');
+      document.getElementById('helpLabel').textContent = __('profile.help');
+      document.getElementById('languageLabel').textContent = __('profile.language');
+      document.getElementById('slogan').textContent = __('saveWater');
+      document.getElementById('signOutBtn').textContent = __('profile.signOut');
+      
+      // Обновляем crop tag
+      const crop = localStorage.getItem('selectedCrop') || __('profile.farmer');
+      document.getElementById('cropDisplay').textContent = `🌾 ${crop}`;
+    }
+
+    // Функция смены языка
+    function changeLanguage(lang) {
+      if (window.langManager.setLanguage(lang)) {
+        // Обновляем отображение текущего языка
+        const langNames = {
+          'en': 'English',
+          'ru': 'Русский',
+          'kz': 'Қазақша'
+        };
+        document.getElementById('currentLangText').textContent = langNames[lang];
+        
+        // Обновляем активный класс
+        document.querySelectorAll('.language-option').forEach(opt => {
+          opt.classList.toggle('active', opt.dataset.lang === lang);
+        });
+        
+        // Обновляем переводы на странице
+        updatePageTranslations();
+        
+        // Закрываем дропдаун
+        document.getElementById('languageDropdown').classList.remove('show');
+        document.getElementById('langArrow').classList.remove('bx-chevron-up');
+      }
+    }
+
+    // Переключение дропдауна языка
+    function toggleLanguageDropdown(event) {
+      event.stopPropagation();
+      const dropdown = document.getElementById('languageDropdown');
+      const arrow = document.getElementById('langArrow');
+      dropdown.classList.toggle('show');
+      arrow.classList.toggle('bx-chevron-up');
+    }
+
+    // Закрытие дропдаунов при клике вне
+    document.addEventListener('click', function(event) {
+      // Языковой дропдаун
+      const langDropdown = document.getElementById('languageDropdown');
+      const langSelector = document.querySelector('.current-language');
+      if (langSelector && !langSelector.contains(event.target)) {
+        langDropdown.classList.remove('show');
+        document.getElementById('langArrow').classList.remove('bx-chevron-up');
+      }
+      
+      // Дропдаун аватарок
+      const avatarDropdown = document.getElementById('avatarDropdown');
+      const editBtn = document.querySelector('.edit-avatar-btn');
+      if (editBtn && !editBtn.contains(event.target) && avatarDropdown && !avatarDropdown.contains(event.target)) {
+        avatarDropdown.classList.remove('show');
+      }
+    });
+
+    // Переключение дропдауна аватарок
+    function toggleAvatarDropdown() {
+      const dropdown = document.getElementById('avatarDropdown');
+      dropdown.classList.toggle('show');
+    }
+
+    // Смена аватарки
+    function changeAvatar(type) {
+      localStorage.setItem('userAvatar', type);
+      const avatarIcon = document.getElementById('avatarIcon');
+      
+      const icons = {
+        'water': 'bx bx-droplet',
+        'earth': 'bx bx-globe',
+        'plant': 'bx bx-leaf'
+      };
+      
+      avatarIcon.className = icons[type] || icons.water;
+      
+      document.querySelectorAll('.avatar-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.type === type);
+      });
+      
+      document.getElementById('avatarDropdown').classList.remove('show');
+    }
+
+    // Загрузка данных пользователя
+    async function loadUserData() {
       const name = localStorage.getItem('userName') || 'User';
       const email = localStorage.getItem('userEmail') || 'user@example.com';
       const avatar = localStorage.getItem('userAvatar') || 'water';
-      const crop = localStorage.getItem('selectedCrop') || 'Farmer';
 
       document.getElementById('userNameDisplay').textContent = name;
       document.getElementById('userEmailDisplay').textContent = email;
-      document.getElementById('cropDisplay').textContent = `🌾 ${crop}`;
 
-      document.querySelectorAll('.avatar-btn').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.type === avatar);
-      });
+      changeAvatar(avatar);
+
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE}/profile_stats`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (res.ok) {
+            const stats = await res.json();
+            document.getElementById('daysTracked').textContent = stats.days_tracked || '0';
+            const waterLiters = stats.water_used_mm ? Math.round(stats.water_used_mm) : 0;
+            document.getElementById('waterSaved').textContent = `${waterLiters}L`;
+          } else if (res.status === 401) {
+            localStorage.removeItem('token');
+            alert('Session expired. Please login again.');
+            window.location.href = 'login.html';
+          }
+        } catch (err) {
+          console.error('Network error:', err);
+        }
+      }
     }
 
-    function changeAvatar(type) {
-      localStorage.setItem('userAvatar', type);
-      loadUserData();
+    function openSettings() {
+      alert('Settings page coming soon!');
+    }
+
+    function openPrivacy() {
+      alert('Privacy settings coming soon!');
+    }
+
+    function openHelp() {
+      alert('Help page coming soon!');
     }
 
     function signOut() {
       if (confirm('Are you sure you want to sign out?')) {
         localStorage.clear();
-        window.location.href = 'index.html';
+        window.location.href = 'login.html';
       }
     }
-    loadUserData();
-  </script>
 
+    // Инициализация
+    window.addEventListener('DOMContentLoaded', () => {
+      // Устанавливаем начальный язык
+      const savedLang = localStorage.getItem('appLanguage') || 'en';
+      changeLanguage(savedLang);
+      
+      // Загружаем данные пользователя
+      loadUserData();
+      
+      // Подписываемся на изменения языка
+      if (window.langManager) {
+        window.langManager.subscribe(updatePageTranslations);
+      }
+    });
+  </script>
 </body>
 </html>

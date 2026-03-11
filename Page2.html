@@ -175,6 +175,7 @@
   </div>
 
   <script>
+    const API_BASE = 'https://doublew.onrender.com';
     let selectedCrop = null;
 
     function selectCrop(crop, element) {
@@ -185,16 +186,56 @@
       btn.classList.add('active');
     }
 
-    function handleContinue() {
-      if (selectedCrop) {
+    async function handleContinue() {
+    if (!selectedCrop) {
+      alert("Choose culture you practice");
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("log in to your account");
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const btn = document.getElementById('continueBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const response = await fetch(`${API_BASE}/set_crop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ crop: selectedCrop })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
         localStorage.setItem('selectedCrop', selectedCrop);
-        if(selectedCrop === 'Maize') {
+        alert("Культура сохранена!");
+        
+        if (selectedCrop === 'Maize') {
           window.location.href = 'faza-rosta-maize.html';
         } else {
           window.location.href = 'faza-rosta-wheat.html';
         }
+      } else {
+        alert(data.error || "Save error");
       }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Unable to save the culture. Check the internet.");
+    } finally {
+      const btn = document.getElementById('continueBtn');
+      btn.disabled = false;
+      btn.textContent = "Continue";
     }
+  }
   </script>
 
 </body>

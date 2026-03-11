@@ -7,6 +7,11 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
+  <!-- Подключаем переводы и менеджер языка -->
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <script src="language-switcher.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -96,6 +101,10 @@
     .submit-btn:active {
       transform: translateY(1px);
     }
+    .submit-btn:disabled {
+      background: #a3e635;
+      cursor: not-allowed;
+    }
     .login-link {
       text-align: center;
       margin-top: 24px;
@@ -115,15 +124,15 @@
 <body>
 
   <div class="container">
-    <div class="slogan">Save water. Save world.</div>
+    <div class="slogan" id="slogan">Save water. Save world.</div>
 
     <div class="form-card">
-      <h1>Create Account</h1>
-      <p class="subtitle">Join us in making irrigation smarter and more sustainable</p>
+      <h1 id="title">Create Account</h1>
+      <p class="subtitle" id="subtitle">Join us in making irrigation smarter and more sustainable</p>
 
       <form id="registerForm">
         <div class="form-group">
-          <label for="name">Full Name</label>
+          <label for="name" id="nameLabel">Full Name</label>
           <input 
             type="text" 
             id="name" 
@@ -134,7 +143,7 @@
         </div>
 
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email" id="emailLabel">Email</label>
           <input 
             type="email" 
             id="email" 
@@ -145,7 +154,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password" id="passwordLabel">Password</label>
           <input 
             type="password" 
             id="password" 
@@ -155,44 +164,116 @@
           >
         </div>
 
-        <button type="submit" class="submit-btn">Continue</button>
+        <button type="submit" class="submit-btn" id="submitBtn">Continue</button>
       </form>
 
       <div class="login-link">
-        Already have an account? 
+        <span id="loginText">Already have an account?</span> 
         <a href="login.html" id="loginLink">Log in</a>
       </div>
     </div>
   </div>
 
-  <script>
+<script>
+    const API_BASE = 'https://doublew.onrender.com';
     const form = document.getElementById('registerForm');
-    const loginLink = document.getElementById('loginLink');
+    const submitBtn = document.getElementById('submitBtn');
 
-    form.addEventListener('submit', function(e) {
+    // Функция обновления переводов
+    function updatePageTranslations() {
+      document.getElementById('slogan').textContent = __('saveWater');
+      document.getElementById('title').textContent = __('register.title');
+      document.getElementById('subtitle').textContent = __('register.subtitle');
+      document.getElementById('nameLabel').textContent = __('register.fullName');
+      document.getElementById('emailLabel').textContent = __('register.email');
+      document.getElementById('passwordLabel').textContent = __('register.password');
+      document.getElementById('loginText').textContent = __('register.haveAccount');
+      document.getElementById('loginLink').textContent = __('register.login');
+      submitBtn.textContent = __('register.signUp');
+    }
+
+    // Подписываемся на изменения языка
+    if (window.langManager) {
+      window.langManager.subscribe(updatePageTranslations);
+    }
+
+    // Загружаем переводы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('appLanguage') || 'en';
+      if (window.langManager) {
+        window.langManager.setLanguage(savedLang);
+      } else {
+        updatePageTranslations();
+      }
+    });
+
+    form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const name = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
+      
+      const isValidEmail = (email) => {
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return regex.test(email.toLowerCase());
+      };
 
       if (!name || !email || !password) {
-        alert('Please fill all fields');
+        alert(__('register.fillFields') || 'Please fill all fields');
         return;
       }
 
-      localStorage.setItem('userName', name);
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('userPassword', password);
-      
-      window.location.href = 'Page2.html';
+      if (!isValidEmail(email)) {
+        alert(__('register.invalidEmail') || 'Please enter a valid email address');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert(__('register.passwordLength') || 'Password must be at least 6 characters long');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = __('register.creating') || 'Creating...';
+
+      try {
+        const response = await fetch(`${API_BASE}/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Сохраняем токены и данные пользователя
+          localStorage.setItem('token', data.access_token);
+          localStorage.setItem('refresh_token', data.refresh_token);
+          localStorage.setItem('userName', name);
+          localStorage.setItem('userEmail', email);
+
+          alert(__('register.success') || "Account created successfully!");
+          window.location.href = "Page2.html";
+        } else {
+          alert(data.message || (__('register.failed') || "Registration failed"));
+        }
+      } catch (error) {
+        console.error(error);
+        alert(__('register.serverError') || "Server error. Please try again later.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = __('register.signUp') || 'Continue';
+      }
     });
 
-    loginLink.onclick = (e) => {
-    e.preventDefault();
-    window.location.href = 'login-page.html';
+    document.getElementById('loginLink').onclick = (e) => {
+      e.preventDefault();
+      window.location.href = 'login.html';
     };
-  </script>
+</script>
 
 </body>
 </html>

@@ -6,6 +6,11 @@
 <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 <title>Главный экран фермы</title>
 
+  <!-- Подключаем переводы и менеджер языка -->
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <script src="language-switcher.js"></script>
+
 <style>
   /* Карточка результата */
 .result-card {
@@ -322,6 +327,7 @@ button.calculate-btn:active {
 }
 .nav-item.active {
   background: #2f8f5b;
+  color: white;
 }
 
 </style>
@@ -342,10 +348,8 @@ button.calculate-btn:active {
   </div>
 
    <div class="calendar-wrapper">
-    <h2>Watering Log</h2>
+    <h2 id="wateringLog">Watering Log</h2>
     <div class="month-year" id="monthYear"></div>
-
-
 
     <div class="calendar-container">
       <button class="arrow" id="prev">❮</button>
@@ -355,7 +359,52 @@ button.calculate-btn:active {
   </div>
 
 <script>
+  // Функция обновления переводов
+  function updatePageTranslations() {
+    const lang = localStorage.getItem('appLanguage') || 'en';
+    
+    // Обновляем заголовок календаря
+    const wateringLog = document.getElementById('wateringLog');
+    if (wateringLog) wateringLog.textContent = __('wateringLog');
+    
+    // Обновляем лейбл для даты расчета
+    const calcLabel = document.querySelector('label[for="simDate"]');
+    if (calcLabel) calcLabel.textContent = __('calculationDate');
+    
+    // Обновляем текст кнопки
+    const calcBtn = document.querySelector('.calculate-btn');
+    if (calcBtn) calcBtn.textContent = __('calculate');
+    
+    // Обновляем текст в карточке результата
+    const resultHeader = document.querySelector('.result-header span');
+    if (resultHeader) resultHeader.textContent = __('recommendedWatering');
+    
+    const phaseLabel = document.querySelector('.info-item:nth-child(1)');
+    if (phaseLabel) phaseLabel.childNodes[0].textContent = __('phase') + ' ';
+    
+    const progressLabel = document.querySelector('.info-item:nth-child(2)');
+    if (progressLabel) progressLabel.childNodes[0].textContent = __('progress') + ' ';
+    
+    const daysSowingLabel = document.querySelector('.info-item:nth-child(3)');
+    if (daysSowingLabel) daysSowingLabel.childNodes[0].textContent = __('daysFromSowing') + ' ';
+    
+    const lastWaterLabel = document.querySelector('.info-item:nth-child(4)');
+    if (lastWaterLabel) lastWaterLabel.childNodes[0].textContent = __('lastWatered') + ' ';
+    
+    // Обновляем футер
+    const footerText = document.querySelector('p[style*="color: #2f8f5b"]');
+    if (footerText) footerText.textContent = __('saveWater');
+  }
+
+  // Подписываемся на изменения языка
+  if (window.langManager) {
+    window.langManager.subscribe(updatePageTranslations);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    // Применяем переводы при загрузке
+    updatePageTranslations();
+    
     const datesContainer = document.getElementById("dates");
     const prevBtn        = document.getElementById("prev");
     const nextBtn        = document.getElementById("next");
@@ -366,7 +415,8 @@ button.calculate-btn:active {
         month: "long",
         year: "numeric"
       });
-}
+    }
+    
     if (!datesContainer) {
       console.error("Element with id='dates' not found");
       return;
@@ -424,7 +474,6 @@ button.calculate-btn:active {
         `;
 
         dateDiv.addEventListener("click", () => {
-
           if (manualSelected.includes(formatted)) {
               manualSelected = manualSelected.filter(d => d !== formatted);
               dateDiv.classList.remove("selected");
@@ -432,37 +481,32 @@ button.calculate-btn:active {
             if (localStorage.getItem("lastWateringDate") === formatted) {
               localStorage.removeItem("lastWateringDate");
             }
+          } else {
+            manualSelected.push(formatted);
+            dateDiv.classList.add("selected");
+            localStorage.setItem("lastWateringDate", formatted);
+          }
 
-        } else {
-          manualSelected.push(formatted);
-          dateDiv.classList.add("selected");
+          localStorage.setItem("selectedDates", JSON.stringify(manualSelected));
+          renderDates();
+        });
 
-          localStorage.setItem("lastWateringDate", formatted);
-        }
+        datesContainer.appendChild(dateDiv);
+      }
+    }
 
-        localStorage.setItem("selectedDates", JSON.stringify(manualSelected));
-        renderDates();
-      });
+    prevBtn.addEventListener("click", () => {
+      startDate.setDate(startDate.getDate() - 7);
+      renderDates();
+    });
 
-      console.log(localStorage.getItem("selectedDates"));
-
-
-      datesContainer.appendChild(dateDiv);
-  }
-}
-
-prevBtn.addEventListener("click", () => {
-  startDate.setDate(startDate.getDate() - 7);
-  renderDates();
-});
-
-nextBtn.addEventListener("click", () => {
-  startDate.setDate(startDate.getDate() + 7);
-  renderDates();
-});
+    nextBtn.addEventListener("click", () => {
+      startDate.setDate(startDate.getDate() + 7);
+      renderDates();
+    });
 
     renderDates();
-});
+  });
 </script>
 
 <div class="main-action">
@@ -472,7 +516,7 @@ nextBtn.addEventListener("click", () => {
         </div>
 
         <div style="text-align: center; margin-bottom: 10px;">
-            <label style="font-size: 12px; color: #888;">Calculation Date:</label><br>
+            <label for="simDate" style="font-size: 12px; color: #888;" id="calcDateLabel">Calculation Date:</label><br>
             <input type="date" id="simDate" style="border: 1px solid #ddd; border-radius: 8px; padding: 5px;">
         </div>
 
@@ -517,109 +561,123 @@ nextBtn.addEventListener("click", () => {
 </div>
 
 <script>
+  const API_BASE = 'https://doublew.onrender.com';
   const savedDates = JSON.parse(localStorage.getItem("irrigationDates")) || [];
   const crop = localStorage.getItem("crop") || "corn";
 
-async function calculate() {
+  async function calculate() {
+    const resultCard = document.getElementById("resultCard");
+    const loader = document.getElementById("loader");
+    const btn = document.querySelector(".calculate-btn");
 
-  const resultCard = document.getElementById("resultCard");
-  const loader = document.getElementById("loader");
-  const btn = document.querySelector(".calculate-btn");
+    // лоадер и блок кнопки
+    resultCard.style.display = "none";
+    loader.style.display = "block";
+    btn.style.opacity = "0.5";
+    btn.disabled = true;
 
-  // Подготовка интерфейса
-  resultCard.style.display = "none";
-  loader.style.display = "block";
-  btn.style.opacity = "0.5";
-  btn.disabled = true;
-    
-
-  let sowingDate = localStorage.getItem("sowingDate");
-
-  if (!sowingDate) {
-    result.textContent = "Сначала укажите дату посева в профиле";
-    result.style.opacity = 1;
-    return;
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(sowingDate)) {
-    console.log("sowingDate уже в правильном формате:", sowingDate);
-  } else {
-    try {
-      const dateObj = new Date(sowingDate);
-      if (!isNaN(dateObj.getTime())) {
-        sowingDate = dateObj.toISOString().split('T')[0];
-        localStorage.setItem("sowingDate", sowingDate);
-        console.log("Исправили sowingDate на правильный формат:", sowingDate);
-      } else {
-        result.textContent = "Дата посева в неверном формате — укажите заново в профиле";
-        result.style.opacity = 1;
-        return;
-      }
-    } catch (e) {
-      result.textContent = "Ошибка формата даты посева — укажите заново";
-      result.style.opacity = 1;
+    // даты из localStorage
+    let sowingDate = localStorage.getItem("sowingDate");
+    if (!sowingDate) {
+      alert(__('noSowingDate') || "Сначала укажите дату посева в профиле");
+      resetUI();
       return;
     }
-  }
 
-  const irrigationDates = JSON.parse(localStorage.getItem("selectedDates") || "[]");
-  let lastWateringDate = null;
+    // Форматируем sowingDate
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(sowingDate)) {
+      try {
+        const dateObj = new Date(sowingDate);
+        sowingDate = dateObj.toISOString().split('T')[0];
+        localStorage.setItem("sowingDate", sowingDate);
+      } catch (e) {
+        alert(__('invalidSowingDate') || "Неверный формат даты посева");
+        resetUI();
+        return;
+      }
+    }
 
+    // Последняя дата полива (самая поздняя из выбранных)
+    const irrigationDates = JSON.parse(localStorage.getItem("selectedDates") || "[]");
+    if (irrigationDates.length === 0) {
+      alert(__('selectWateringDate') || "Отметьте хотя бы один день полива в календаре");
+      resetUI();
+      return;
+    }
+    
+    const lastWateringDate = irrigationDates.reduce((max, current) => {
+        return current > max ? current : max;
+      }, irrigationDates[0]);
 
- if (irrigationDates.length === 0) {
-    result.textContent = "Отметьте хотя бы один день полива в календаре";
-    result.style.opacity = 1;
-    return;
-  }
+    // Дата расчёта (из input или сегодня)
+    let simDateInput = document.getElementById("simDate").value;
+    const simulated = simDateInput || new Date().toISOString().split('T')[0];
 
-  lastWateringDate = irrigationDates.reduce((max, current) => {
-    return current > max ? current : max;
-  }, irrigationDates[0]);
+    const payload = {
+      sowing_date: sowingDate,
+      simulated_date: simulated,
+      lastWateringDate: lastWateringDate,
+      crop: localStorage.getItem("crop") === "maize" ? 0 : 1  // 0 = maize, 1 = wheat
+    };
+  
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert(__('pleaseLogin') || "Пожалуйста, войдите в аккаунт");
+        window.location.href = 'login.html';
+        return;
+      }
 
-  console.log("Найденный последний полив:", lastWateringDate);
+      const response = await fetch(`${API_BASE}/predict`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
 
-  let simDateInput = document.getElementById("simDate").value;
-  let simulated = simDateInput || today.toISOString().split('T')[0];
+      if (!response.ok) {
+        if (response.status === 401) {
+          alert(__('sessionExpired') || "Сессия истекла. Войдите заново.");
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+          return;
+        }
+        throw new Error(`Ошибка сервера: ${response.status}`);
+      }
 
-  const payload = {
-    sowing_date: localStorage.getItem("sowingDate"),
-    simulated_date: simulated,
-    lastWateringDate: lastWateringDate,
-    crop: localStorage.getItem("crop") === "maize" ? 0 : 1
-  };
+      const data = await response.json();
 
-
-  try {
-    const response = await fetch("http://192.168.0.15:5000/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
-
-
-    const data = await response.json();
-
+      // Заполняем карточку результата
       document.getElementById("waterVal").textContent = data.water_mm;
       document.getElementById("phaseName").textContent = data.phase_name;
       document.getElementById("phaseProgress").textContent = (data.phase_progress * 100).toFixed(0) + "%";
       document.getElementById("daysSowing").textContent = data.days_since;
-      document.getElementById("daysLastWater").textContent = data.days_since_last_water + " days ago";
+      document.getElementById("daysLastWater").textContent = data.days_since_last_water + " " + (__('daysAgo') || "days ago");
       document.getElementById("aiText").textContent = data.explanation;
 
-      loader.style.display = "none";
       resultCard.style.display = "block";
 
- 
+    } catch (err) {
+      console.error("Ошибка расчёта:", err);
+      alert("Не удалось выполнить расчёт: " + err.message);
+    } finally {
+      resetUI();
+    }
+  }
 
-} catch (err) {
-        result.textContent = "Не удалось подключиться к расчёту: " + err.message;
-        console.error(err);
-    }}
+  function resetUI() {
+    const loader = document.getElementById("loader");
+    const btn = document.querySelector(".calculate-btn");
+    loader.style.display = "none";
+    btn.style.opacity = "1";
+    btn.disabled = false;
+  }
 </script>
-  <p style="margin: 0; font-size: 13px; color: #565656b0;text-align: center;">Powered by Open-Meteo Weather Data</p>
-  <p style="margin: 0; font-size: 12px; color: #2f8f5b; text-align: center;">
+
+  <p style="margin: 0; font-size: 13px; color: #565656b0; text-align: center;">Powered by Open-Meteo Weather Data</p>
+  <p style="margin: 0; font-size: 12px; color: #2f8f5b; text-align: center;" id="footerSlogan">
     Save water. Save world.
   </p>
 </body>

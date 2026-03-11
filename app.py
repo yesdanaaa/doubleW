@@ -1,13 +1,299 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
+import re
 import numpy as np
 from datetime import datetime, date
 import pandas as pd
 from chat.chat.gemini import ask_gemini
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    create_refresh_token,
+    jwt_required,
+    get_jwt_identity
+)
+from datetime import timedelta
 
 
 app = Flask(__name__)
+
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)     # access — короткий
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=180)       # refresh — длинный
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = '169588ff245a116dc51f6b7402a22b8861e56f3ef07b5149155e8052a80822bf'
+
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
+
+# Модель пользователя
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    crop = db.Column(db.String(50), nullable=True)
+    sowing_date = db.Column(db.String(10), nullable=True)
+    last_irrigation_date = db.Column(db.String(10), nullable=True)   #при регистрации
+    last_irrigation_date_real = db.Column(db.DateTime, nullable=True) #кнопка высчитать
+
+    water_used_mm = db.Column(db.Float, default=0.0)
+    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class AIChat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    message = db.Column(db.Text)
+    response = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class FarmerChat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    message = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Создание базы
+with app.app_context():
+    db.create_all()
+
+@app.route('/set_crop', methods=['POST'])
+@jwt_required()
+def set_crop():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    data = request.json
+    crop = data.get('crop')
+    
+    if crop not in ['Maize', 'Wheat']:
+        return jsonify({"error": "Invalid crop (only Maize or Wheat)"}), 400
+    
+    user.crop = crop
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Crop saved successfully",
+        "crop": user.crop
+    }), 200
+
+@app.route('/set_sowing_date', methods=['POST'])
+@jwt_required()
+def set_sowing_date():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    data = request.json
+    date_str = data.get('sowing_date')
+    
+    if not date_str or not re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+        return jsonify({"error": "Invalid date format (use YYYY-MM-DD)"}), 400
+    
+    user.sowing_date = date_str
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Sowing date saved successfully",
+        "sowing_date": user.sowing_date
+    }), 200
+
+@app.route('/set_initial_irrigation_date', methods=['POST'])
+@jwt_required()
+def set_initial_irrigation():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.json
+    date_str = data.get('last_irrigation_date')
+
+    if not date_str or not re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+        return jsonify({"error": "Ожидается формат YYYY-MM-DD"}), 400
+
+    try:
+        d = datetime.strptime(date_str, "%Y-%m-%d")
+        if d > datetime.now():
+            return jsonify({"error": "Дата полива не может быть в будущем"}), 400
+    except:
+        return jsonify({"error": "Неверный формат даты"}), 400
+
+    user.last_irrigation_date = date_str
+    db.session.commit()
+
+    return jsonify({"message": "Дата последнего полива сохранена", "date": date_str}), 200
+
+#отметка полива вручную
+@app.route('/update_irrigation_date', methods=['POST'])
+@jwt_required()
+def update_irrigation_date():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    data = request.json
+    date_str = data.get('irrigation_date')
+    
+    if not date_str:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+    
+    try:
+        irrigation_date = datetime.strptime(date_str, "%Y-%m-%d")
+    except:
+        return jsonify({"error": "Неверный формат даты"}), 400
+    
+    user.last_irrigation_date = date_str
+    user.last_irrigation_date_real = irrigation_date
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Дата полива обновлена",
+        "date": date_str
+    }), 200
+
+class Irrigation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    crop = db.Column(db.String(50))
+    sowing_date = db.Column(db.String(20))
+    calculation_date = db.Column(db.String(20))
+    last_watering_date = db.Column(db.String(20))
+
+    water_mm = db.Column(db.Float)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+@app.route('/get_sowing_date', methods=['GET'])
+@jwt_required()
+def get_sowing_date():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    return jsonify({
+        "sowing_date": user.sowing_date
+    }), 200
+
+@app.route('/get_last_irrigation_date', methods=['GET'])
+@jwt_required()
+def get_last_irrigation_date():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    return jsonify({
+        "last_irrigation_date": user.last_irrigation_date,
+        "last_irrigation_date_real": user.last_irrigation_date_real.strftime("%Y-%m-%d %H:%M:%S") if user.last_irrigation_date_real else None
+    }), 200
+
+# Регистрация
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"message": "Email already exists"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    new_user = User(
+        name=name,
+        email=email,
+        password=hashed_password
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    access_token = create_access_token(identity=new_user.id)
+    refresh_token = create_refresh_token(identity=new_user.id)
+
+    return jsonify({
+    "message": "User registered successfully",
+    "access_token": access_token,
+    "refresh_token": refresh_token
+    }), 201
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
+
+# Логин
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
+        access_token = create_access_token(identity=user.id)
+        refresh_token = create_refresh_token(identity=user.id)
+
+        return jsonify({"message": "Login successful", "access_token": access_token, "refresh_token": refresh_token}), 200
+
+    return jsonify({"message": "Invalid credentials"}), 401
+
+@app.route('/profile_stats', methods=['GET'])
+@jwt_required()
+def profile_stats():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    # отслеживание = сегодня - registered_at
+    today = datetime.utcnow().date()
+    reg_date = user.registered_at.date()
+    days_tracked = (today - reg_date).days + 1  # +1 чтобы день регистрации тоже считался
+    
+    # Сумма воды
+    water_used = user.water_used_mm or 0
+    
+    return jsonify({
+        "days_tracked": days_tracked,
+        "water_used_mm": round(water_used, 1),
+        "registered_at": user.registered_at.strftime("%Y-%m-%d") if user.registered_at else None
+    }), 200
+
+# refresh
+@app.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user_id = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_user_id)
+    return jsonify({"access_token": new_access_token}), 200
+
 CORS(app)
 
 weather_df = None
@@ -71,7 +357,10 @@ def home():
         "optional_fields": ["lastWateringDate"]
     })
 @app.route('/predict', methods=['POST'])
+@jwt_required()
 def predict():
+    user_id = get_jwt_identity()
+
     print("=== НОВЫЙ POST /predict ===")
     print("Метод:", request.method)
     print("Headers:", dict(request.headers))
@@ -207,6 +496,22 @@ def predict():
                 phase_name = "Maturation"
         phase_progress = min(approx_gdd / total_gdd_to_maturity, 1.0)
 
+        new_irrigation = Irrigation(
+            user_id=user_id,
+            crop="maize" if crop == 0 else "wheat",
+            sowing_date=sowing_date_str,
+            calculation_date=simulated_date_str,
+            last_watering_date=last_watering_str,
+            water_mm=pred_mm
+        )
+        db.session.add(new_irrigation)
+        db.session.commit()
+
+        # Обновление water_used_mm у пользователя (добавляем pred_mm как сэкономленную воду)
+        user = User.query.get(user_id)
+        user.water_used_mm += pred_mm  # пока что
+        db.session.commit()
+
         response = {
             "water_mm": round(float(pred_mm), 1),
             "unit": "mm (≈ liters per m²)",
@@ -218,6 +523,13 @@ def predict():
             "days_since": days_since,
             "days_since_last_water": days_since_last_water
         }
+
+        if simulated_date_str == datetime.now().strftime("%Y-%m-%d"):
+            user = User.query.get(user_id)
+            user.last_irrigation_date_real = datetime.now()
+            db.session.commit()
+            print(f"Automatically updated watering date for user {user_id}")
+
         return jsonify(response)
     except KeyError as e:
         print("ОШИБКА В PREDICT:", str(e))
@@ -226,5 +538,87 @@ def predict():
         return jsonify({"error": f"Неверный формат даты или числа: {str(e)}"}), 400
     except Exception as e:
         return jsonify({"error": f"Внутренняя ошибка: {str(e)}"}), 500
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+# маршрут для чата с AI
+@app.route('/ai_chat', methods=['POST'])
+@jwt_required()
+def ai_chat():
+    user_id = get_jwt_identity()
+    data = request.json
+    message = data.get('message')
+
+    if not message:
+        return jsonify({"error": "Нет сообщения"}), 400
+    
+    # вызываем бот gemini
+    response_text = ask_gemini(message=message)
+
+    new_chat = AIChat(
+        user_id=user_id,
+        message=message,
+        response=response_text
+    )
+    db.session.add(new_chat)
+    db.session.commit()
+
+    return jsonify({"response": response_text}), 200
+
+# маршрут для истории чата с AI
+@app.route('/ai_chat_history', methods=['GET'])
+@jwt_required()
+def ai_chat_history():
+    user_id = get_jwt_identity()
+    chats = AIChat.query.filter_by(user_id=user_id).order_by(AIChat.created_at.asc()).all()
+    history = [{"message": chat.message, "response": chat.response, "created_at": chat.created_at} for chat in chats]
+    return jsonify({"history": history}), 200
+
+# маршрут для фермерского чата
+@app.route('/farmer_chat', methods=['POST'])
+@jwt_required()
+def farmer_chat_post():
+    user_id = get_jwt_identity()
+    data = request.json
+    message = data.get('message')
+
+    if not message:
+        return jsonify({"error": "Нет сообщения"}), 400
+
+    new_message = FarmerChat(
+        user_id=user_id,
+        message=message
+    )
+    db.session.add(new_message)
+    db.session.commit()
+
+    return jsonify({"message": "Сообщение отправлено"}), 200
+
+# Получение всех сообщений фермерского чата
+@app.route('/farmer_chat', methods=['GET'])
+@jwt_required()
+def farmer_chat_get():
+    messages = FarmerChat.query.order_by(FarmerChat.created_at.asc()).all()
+    chat_data = []
+    for msg in messages:
+        user = User.query.get(msg.user_id)
+        chat_data.append({
+            "user_name": user.name,
+            "message": msg.message,
+            "created_at": msg.created_at
+        })
+    return jsonify({"messages": chat_data}), 200
+
+# Получение истории ирригаций пользователя
+@app.route('/irrigation_history', methods=['GET'])
+@jwt_required()
+def irrigation_history():
+    user_id = get_jwt_identity()
+    irrigations = Irrigation.query.filter_by(user_id=user_id).order_by(Irrigation.created_at.desc()).all()
+    history = [{
+        "crop": irr.crop,
+        "sowing_date": irr.sowing_date,
+        "calculation_date": irr.calculation_date,
+        "last_watering_date": irr.last_watering_date,
+        "water_mm": irr.water_mm,
+        "created_at": irr.created_at
+    } for irr in irrigations]
+    return jsonify({"history": history}), 200

@@ -7,6 +7,11 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
+  <!-- Подключаем переводы и менеджер языка -->
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <script src="language-switcher.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -160,15 +165,15 @@
 
   <div class="container">
     
-    <p class="slogan">Save water. Save world.</p>
+    <p class="slogan" id="slogan">Save water. Save world.</p>
 
     <div class="form-card">
-      <h1>Welcome Back</h1>
-      <p class="subtitle">Log in to manage your irrigation efficiently</p>
+      <h1 id="title">Welcome Back</h1>
+      <p class="subtitle" id="subtitle">Log in to manage your irrigation efficiently</p>
 
       <form id="loginForm">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email" id="emailLabel">Email</label>
           <input 
             type="email" 
             id="email" 
@@ -179,7 +184,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password" id="passwordLabel">Password</label>
           <input 
             type="password" 
             id="password" 
@@ -192,50 +197,106 @@
         <div class="checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" id="remember">
-            Remember me
+            <span id="rememberText">Remember me</span>
           </label>
-          <a href="#" class="forgot-link">Forgot password?</a>
+          <a href="#" class="forgot-link" id="forgotText">Forgot password?</a>
         </div>
 
-        <button type="submit" class="submit-btn">Log In</button>
+        <button type="submit" class="submit-btn" id="loginBtn">Log In</button>
       </form>
 
       <div class="signup-link">
-        Don't have an account? 
-        <a href="index.html">Sign up</a>
+        <span id="noAccountText">Don't have an account?</span> 
+        <a href="index.html" id="signupLink">Sign up</a>
       </div>
     </div>
 
-    <p class="info-text">
-      By logging in, you agree to our smart irrigation practices<br>
-      for a more sustainable future
+    <p class="info-text" id="infoText">
+      By logging in, you agree to our smart irrigation practices<br>for a more sustainable future
     </p>
   </div>
 
-  <script>
-    const form = document.getElementById('loginForm');
+<script>
+const API_BASE = 'https://doublew.onrender.com';
+const form = document.getElementById('loginForm');
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
+// Функция обновления переводов
+function updatePageTranslations() {
+  document.getElementById('slogan').textContent = __('saveWater');
+  document.getElementById('title').textContent = __('login.title');
+  document.getElementById('subtitle').textContent = __('login.subtitle');
+  document.getElementById('emailLabel').textContent = __('login.email');
+  document.getElementById('passwordLabel').textContent = __('login.password');
+  document.getElementById('rememberText').textContent = __('login.remember');
+  document.getElementById('forgotText').textContent = __('login.forgot');
+  document.getElementById('loginBtn').textContent = __('login.login');
+  document.getElementById('noAccountText').textContent = __('login.noAccount');
+  document.getElementById('signupLink').textContent = __('login.signUp');
+  document.getElementById('infoText').innerHTML = __('login.info');
+}
 
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+// Подписываемся на изменения языка
+if (window.langManager) {
+  window.langManager.subscribe(updatePageTranslations);
+}
 
-      if (!email || !password) {
-        alert('Please fill in email and password');
-        return;
-      }
+// Загружаем переводы при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('appLanguage') || 'en';
+  if (window.langManager) {
+    window.langManager.setLanguage(savedLang);
+  } else {
+    updatePageTranslations();
+  }
+});
 
-      const savedEmail = localStorage.getItem('userEmail');
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
 
-      if (savedEmail && savedEmail === email) {
-        window.location.href = 'frontend.html';
-      } else {
-        localStorage.setItem('userEmail', email);
-        window.location.href = 'frontend.html';
-      }
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  if (!email || !password) {
+    alert(__('login.fillFields') || 'Please fill in email and password');
+    return;
+  }
+
+  const submitBtn = form.querySelector('.submit-btn');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = __('login.loggingIn') || 'Logging in...';
+
+  try {
+    const response = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
     });
-  </script>
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Сохраняем токены и email
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      localStorage.setItem('userEmail', email);
+
+      alert(__('login.success') || 'Login successful!');
+      window.location.href = 'frontend.html';
+    } else {
+      alert(data.message || (__('login.invalid') || 'Invalid email or password'));
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert(__('login.connectionError') || 'Could not connect to server');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+});
+</script>
 
 </body>
 </html>

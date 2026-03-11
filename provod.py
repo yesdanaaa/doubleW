@@ -5,6 +5,10 @@ from ch.gemini import ask_gemini_chat
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
+
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
     if request.method == "OPTIONS":
@@ -23,5 +27,3 @@ def chat():
     except Exception as e:
         print(f"Ошибка на сервере: {e}")
         return jsonify({"reply": "Sorry, server error occurred."}), 500
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
