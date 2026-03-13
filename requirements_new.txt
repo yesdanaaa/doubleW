@@ -1,0 +1,12 @@
+Flask
+flask-cors
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-JWT-Extended
+numpy
+pandas
+joblib
+openmeteo-requests
+requests-cache
+retry-requests
+gunicorn
