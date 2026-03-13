@@ -330,22 +330,13 @@ model = None
 try:
     model = joblib.load("irrigation_model.pkl")
     print("Модель загружена успешно")
-    print("Model type:", type(model))
-    print("Model class name:", model._class._name_)
-
-    if hasattr(model,"get_params"):
-        print("Parameters:", model.get_params())
-
-    print("Ожидаемое количество признаков:", model.n_features_in_)
-    print("Model loaded successfully (irrigation_model.pkl)")
+    if hasattr(model, "n_features_in_"):
+        print("Ожидаемое количество признаков:", model.n_features_in_)
+    else:
+        print("Модель загружена, но n_features_in_ отсутствует")
 except Exception as e:
     print(f"Model loading error: {e}")
-    print("Модель загружена, ожидает признаков:", model.n_features_in_)
-
-    
-    
-
-    
+    model = None
 
 
 @app.route('/')
