@@ -9,4 +9,5 @@ joblib
 openmeteo-requests
 requests-cache
 retry-requests
+google-genai
 gunicorn
