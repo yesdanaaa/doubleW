@@ -16,6 +16,7 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from datetime import timedelta
+import os
 
 
 app = Flask(__name__)
@@ -28,6 +29,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = '169588ff245a116dc51f6b7402a22b8861e56f3ef07b5149155e8052a80822bf'
 
 db = SQLAlchemy(app)
+db_path = 'users.db'
+if os.path.exists(db_path):
+    os.remove(db_path)
+    print("Старая база users.db удалена — будет создана новая")
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
