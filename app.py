@@ -49,6 +49,8 @@ class User(db.Model):
 
     water_used_mm = db.Column(db.Float, default=0.0)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+with app.app_context():
+    db.create_all()
 
 
 class AIChat(db.Model):
