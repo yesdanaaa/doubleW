@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account</title>
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <!-- Подключаем переводы и менеджер языка -->
+  <script src="translations.js"></script>
+  <script src="language.js"></script>
+  <script src="language-switcher.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #eff6ff, #f0fdfa, #ecfdf5);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      color: #1f2937;
+    }
+    .container {
+      width: 100%;
+      max-width: 420px;
+    }
+    .slogan {
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 0.875rem;
+      color: #15803d;
+      letter-spacing: 0.5px;
+    }
+    .form-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 32px 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      border: 1px solid #d1fae5;
+    }
+    h1 {
+      font-size: 2.25rem;
+      color: #065f46;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #4b5563;
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover {
+      background: #15803d;
+    }
+    .submit-btn:active {
+      transform: translateY(1px);
+    }
+    .submit-btn:disabled {
+      background: #a3e635;
+      cursor: not-allowed;
+    }
+    .login-link {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+    .login-link a {
+      color: #16a34a;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="slogan" id="slogan">Save water. Save world.</div>
+
+    <div class="form-card">
+      <h1 id="title">Create Account</h1>
+      <p class="subtitle" id="subtitle">Join us in making irrigation smarter and more sustainable</p>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="name" id="nameLabel">Full Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            placeholder="John Doe" 
+            required 
+            autocomplete="name"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email" id="emailLabel">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="you@example.com" 
+            required 
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password" id="passwordLabel">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="••••••••" 
+            required 
+            autocomplete="new-password"
+          >
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Continue</button>
+      </form>
+
+      <div class="login-link">
+        <span id="loginText">Already have an account?</span> 
+        <a href="login.html" id="loginLink">Log in</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+    const API_BASE = 'https://doublew.onrender.com';
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Функция обновления переводов
+    function updatePageTranslations() {
+      document.getElementById('slogan').textContent = __('saveWater');
+      document.getElementById('title').textContent = __('register.title');
+      document.getElementById('subtitle').textContent = __('register.subtitle');
+      document.getElementById('nameLabel').textContent = __('register.fullName');
+      document.getElementById('emailLabel').textContent = __('register.email');
+      document.getElementById('passwordLabel').textContent = __('register.password');
+      document.getElementById('loginText').textContent = __('register.haveAccount');
+      document.getElementById('loginLink').textContent = __('register.login');
+      submitBtn.textContent = __('register.signUp');
+    }
+
+    // Подписываемся на изменения языка
+    if (window.langManager) {
+      window.langManager.subscribe(updatePageTranslations);
+    }
+
+    // Загружаем переводы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('appLanguage') || 'en';
+      if (window.langManager) {
+        window.langManager.setLanguage(savedLang);
+      } else {
+        updatePageTranslations();
+      }
+    });
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      
+      const isValidEmail = (email) => {
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return regex.test(email.toLowerCase());
+      };
+
+      if (!name || !email || !password) {
+        alert(__('register.fillFields') || 'Please fill all fields');
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        alert(__('register.invalidEmail') || 'Please enter a valid email address');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert(__('register.passwordLength') || 'Password must be at least 6 characters long');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = __('register.creating') || 'Creating...';
+
+      try {
+        const response = await fetch(`${API_BASE}/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Сохраняем токены и данные пользователя
+          localStorage.setItem('token', data.access_token);
+          localStorage.setItem('refresh_token', data.refresh_token);
+          localStorage.setItem('userName', name);
+          localStorage.setItem('userEmail', email);
+
+          alert(__('register.success') || "Account created successfully!");
+          window.location.href = "Page2.html";
+        } else {
+          alert(data.message || (__('register.failed') || "Registration failed"));
+        }
+      } catch (error) {
+        console.error(error);
+        alert(__('register.serverError') || "Server error. Please try again later.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = __('register.signUp') || 'Continue';
+      }
+    });
+
+    document.getElementById('loginLink').onclick = (e) => {
+      e.preventDefault();
+      window.location.href = 'login.html';
+    };
+</script>
+
+</body>
+</html>
