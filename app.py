@@ -18,21 +18,22 @@ from flask_jwt_extended import (
 from datetime import timedelta
 import os
 
-
 app = Flask(__name__)
 
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)     # access — короткий
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=180)       # refresh — длинный
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url:
+    database_url = database_url.replace("postgres://", "postgresql://")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///users.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = '169588ff245a116dc51f6b7402a22b8861e56f3ef07b5149155e8052a80822bf'
 
 db = SQLAlchemy(app)
-db_path = 'users.db'
-if os.path.exists(db_path):
-    os.remove(db_path)
-    print("Старая база users.db удалена — будет создана новая")
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
@@ -49,8 +50,6 @@ class User(db.Model):
 
     water_used_mm = db.Column(db.Float, default=0.0)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
-with app.app_context():
-    db.create_all()
 
 
 class AIChat(db.Model):
@@ -368,6 +367,15 @@ def predict():
     if model is None:
         return jsonify({"error": "Модель не загружена"}), 500
     data = request.get_json()
+    crop_str = data['crop']
+
+    if crop_str == "Maize":
+        crop = 0
+    elif crop_str == "Wheat":
+        crop = 1
+    else:
+        return jsonify({"error": "Invalid crop"}), 400
+    
     if not data:
        return jsonify({"error": "Нет JSON"}), 400
     print("Запрос:", data)
@@ -444,7 +452,7 @@ def predict():
         soil_moisture,
         float(days_since),
         float(days_since_last_water),
-        float(data['crop'])
+        float(crop)
         ]])
         print("12. Features сформированы:", features.shape)
         print("13. Запуск модели")
