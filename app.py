@@ -147,6 +147,28 @@ def set_initial_irrigation():
 
     return jsonify({"message": "Дата последнего полива сохранена", "date": date_str}), 200
 
+@app.route('/debug_user', methods=['GET'])
+@jwt_required()
+def debug_user():
+    """Временный эндпоинт для проверки пользователя"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        return jsonify({
+            "user_id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "crop": user.crop,
+            "has_crop": user.crop is not None,
+            "registered_at": str(user.registered_at)
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 #отметка полива вручную
 @app.route('/update_irrigation_date', methods=['POST'])
 @jwt_required()
