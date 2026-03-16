@@ -402,11 +402,11 @@ def predict():
     if model is None:
         return jsonify({"error": "Модель не загружена"}), 500
     data = request.get_json()
-    crop_str = data['crop']
+    crop_val = data.get("crop")
 
-    if crop_str == "Maize":
+    if crop_val in [0, "0", "Maize", "maize"]:
         crop = 0
-    elif crop_str == "Wheat":
+    elif crop_val in [1, "1", "Wheat", "wheat"]:
         crop = 1
     else:
         return jsonify({"error": "Invalid crop"}), 400
