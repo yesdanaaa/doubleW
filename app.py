@@ -22,6 +22,9 @@ app = Flask(__name__)
 
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)     # access — короткий
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=180)       # refresh — длинный
+app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+app.config["JWT_CSRF_CHECK_FORM"] = False 
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 
 database_url = os.environ.get("DATABASE_URL")
 
