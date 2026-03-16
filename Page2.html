@@ -174,120 +174,115 @@
     <button id="continueBtn" class="continue-btn" onclick="handleContinue()">Continue</button>
   </div>
 
-  <script>
-    // Проверка токена при загрузке страницы
-    // 
+<script>
+    const API_BASE = 'https://doublew.onrender.com';
+    let selectedCrop = null;
+
     document.addEventListener('DOMContentLoaded', function() {
-      const token = localStorage.getItem('token');
-      console.log("Token on page load:", token ? "Present" : "Missing");
-    
-      if (!token) {
-        console.log("No token found, will redirect to login when trying to continue");
-      } else {
-        // Проверим, что токен рабочий
-          fetch(`${API_BASE}/debug_user`, {
+        const token = localStorage.getItem('token');
+
+        console.log("=== INITIAL CHECK ===");
+        console.log("Token from storage:", token ? "Exists" : "MISSING");
+        if (token) {
+            console.log("Full Token (first 15 chars):", token.substring(0, 15) + "...");
+        }
+
+        if (!token) {
+            console.warn("No token found, user might need to login.");
+            return;
+        }
+
+        // Валидация токена
+        fetch(`${API_BASE}/debug_user`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         })
         .then(res => {
+            // Если токен именно протух (401), только тогда чистим
+            if (res.status === 401) {
+                console.error("Token expired. Cleaning up...");
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
             if (!res.ok) {
-                console.log("Token validation failed:", res.status);
-                localStorage.removeItem('token'); // Удаляем нерабочий токен
+                console.warn(`Server status: ${res.status}. Error 422 means token format issue.`);
             }
             return res.json();
         })
-        .then(data => console.log("User data from token:", data))
-        .catch(err => console.log("Token validation error:", err));
-      }
+        .then(data => {
+            if (data.user_id) {
+                console.log("Success! User authenticated:", data.email);
+            }
+        })
+        .catch(err => {
+            console.error("Connection error during validation:", err);
+        });
     });
 
-    const API_BASE = 'https://doublew.onrender.com';
-    let selectedCrop = null;
-
+    // Функция выбора культуры
     function selectCrop(crop, element) {
-      document.querySelectorAll('.crop-btn').forEach(btn => btn.classList.remove('selected'));
-      element.classList.add('selected');
-      selectedCrop = crop;
-      const btn = document.getElementById('continueBtn');
-      btn.classList.add('active');
+        document.querySelectorAll('.crop-btn').forEach(btn => btn.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedCrop = crop; // Присваиваем значение объявленной выше переменной
+        const btn = document.getElementById('continueBtn');
+        btn.classList.add('active');
     }
 
+    // Функция отправки данных
     async function handleContinue() {
-      if (!selectedCrop) {
-        alert("Choose culture you practice");
-        return;
-      }
-      const token = localStorage.getItem('token');
-      console.log("=== ДИАГНОСТИКА ===");
-      console.log("1. Selected crop:", selectedCrop);
-      console.log("2. Token from localStorage:", token ? token.substring(0, 20) + "..." : "NO TOKEN");
-      
-      if (!token) {
-        alert("log in to your account");
-        window.location.href = 'login.html';
-        return;
-      }
+        if (!selectedCrop) {
+            alert("Choose culture you practice");
+            return;
+        }
 
-      try {
-          const btn = document.getElementById('continueBtn');
-          btn.disabled = true;
-          btn.textContent = 'Saving...';
-
-          console.log("3. Sending request to:", `${API_BASE}/set_crop`);
-          console.log("4. Request body:", JSON.stringify({ crop: selectedCrop }));
-          
-          const response = await fetch(`${API_BASE}/set_crop`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ crop: selectedCrop })
-          });
-
-          console.log("5. Response status:", response.status);
-          console.log("6. Response status text:", response.statusText);
+        const token = localStorage.getItem('token');
         
-          // Пробуем получить ответ как текст сначала
-          const responseText = await response.text();
-          console.log("7. Raw response text:", responseText);
-        
-          // Пытаемся распарсить JSON
-          let data;
-          try {
-              data = JSON.parse(responseText);
-              console.log("8. Parsed response data:", data);
-          } catch (e) {
-              console.log("8. Failed to parse JSON:", e.message);
-              data = { error: "Invalid JSON response" };
-          }
+        if (!token) {
+            alert("Please log in to your account");
+            window.location.href = 'login.html';
+            return;
+        }
 
-          if (response.ok) {
-              console.log("9. Success! Saving to localStorage...");
-              localStorage.setItem('selectedCrop', selectedCrop);
-              alert("Культура сохранена!");
-              
-              if (selectedCrop === 'Maize') {
-                  window.location.href = 'faza-rosta-maize.html';
-              } else {
-                  window.location.href = 'faza-rosta-wheat.html';
-              }
-          } else {
-              console.log("9. Error response:", data);
-              // Показываем конкретную ошибку от сервера
-              alert(data.error || data.message || `Save error (${response.status})`);
-          }
-      } catch (error) {
-          console.error("10. Network/Fetch error:", error);
-          alert(`Unable to save the culture: ${error.message}`);
-      } finally {
-          const btn = document.getElementById('continueBtn');
-          btn.disabled = false;
-          btn.textContent = "Continue";
-      }
+        try {
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const response = await fetch(`${API_BASE}/set_crop`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ crop: selectedCrop })
+            });
+
+            const responseText = await response.text();
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                data = { error: "Invalid server response" };
+            }
+
+            if (response.ok) {
+                localStorage.setItem('selectedCrop', selectedCrop);
+                // alert("Culture saved!"); // Можно убрать для плавности
+                window.location.href = selectedCrop === 'Maize' ? 'faza-rosta-maize.html' : 'faza-rosta-wheat.html';
+            } else {
+                alert(data.error || data.message || `Error ${response.status}`);
+            }
+        } catch (error) {
+            console.error("Network error:", error);
+            alert("Server connection failed");
+        } finally {
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = false;
+            btn.textContent = "Continue";
+        }
     }
-  </script>
+</script>
 
 </body>
 </html>

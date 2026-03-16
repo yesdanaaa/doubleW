@@ -5,7 +5,7 @@ import re
 import numpy as np
 from datetime import datetime, date
 import pandas as pd
-from chat.chat.gemini import ask_gemini
+from chat.chat.gemini import ask_gemini, ask_gemini_chat
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
@@ -36,6 +36,16 @@ app.config['JWT_SECRET_KEY'] = '169588ff245a116dc51f6b7402a22b8861e56f3ef07b5149
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
+
+@jwt.unauthorized_loader
+def custom_unauthorized_response(reason):
+    # Этот код сработает, если в запросе вообще нет токена
+    return jsonify({"error": "unauthorized", "message": reason}), 401
+
+@jwt.invalid_token_loader
+def custom_invalid_token_response(reason):
+    # Этот код сработает, если токен есть, но он не правильный (ошибка 422)
+    return jsonify({"error": "invalid_token", "message": reason}), 422
 
 # Модель пользователя
 class User(db.Model):
@@ -576,10 +586,9 @@ def ai_chat():
     message = data.get('message')
 
     if not message:
-        return jsonify({"error": "Нет сообщения"}), 400
-    
-    # вызываем бот gemini
-    response_text = ask_gemini(message=message)
+        return jsonify({"error": "No message"}), 400
+
+    response_text = ask_gemini_chat(user_question=message)
 
     new_chat = AIChat(
         user_id=user_id,

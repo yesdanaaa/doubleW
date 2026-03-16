@@ -1,6 +1,9 @@
 import os
 from google import genai
 
+API_KEY_1 = "AIzaSyAvz2gBgfplWSVVgWemkWCE2yHNMDnFmqE"
+API_KEY_2 = "AIzaSyCMITxBny2faIscvtSxbxMc4u7BSptpYw8"
+
 def ask_gemini(
     crop,
     days_since,
@@ -12,7 +15,7 @@ def ask_gemini(
     soil_moisture,
     pred_mm
 ):
-    client = genai.Client(api_key="AIzaSyAvz2gBgfplWSVVgWemkWCE2yHNMDnFmqE")
+    client = genai.Client(api_key=API_KEY_1)
 
     contents=f"""
 You are an agricultural decision-support assistant.
@@ -53,10 +56,30 @@ Guidelines:
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash-lite", 
+            model="gemini-2.0-flash-lite", 
             contents=contents
         )
         return response.text
     except Exception as e:
         print(f"Error in Gemini: {e}")
         return "Explanation unavailable at the moment."
+    
+def ask_gemini_chat(user_question):
+    client = genai.Client(api_key=API_KEY_2)
+
+    system_instr = """You are an AI assistant for a water-saving website. 
+    Rules: Answer in the same language the user uses (English, Russian, or Kazakh). Never give exact water amounts—tell them to use the 'Calculate' button.
+    ABOUT THE WEBSITE: This platform helps farmers conserve water in agriculture. It calculates the optimal irrigation amount based on: - crop type (e.g., corn, wheat)- sowing date - last irrigation date - weather data from Open-Meteo (temperature, humidity, rainfall, wind, evaporation, etc.) 
+    Website Goals: The platform aims to promote efficient and sustainable water use in agriculture.Its primary objectives are:1. to help farmers conserve water resources by avoiding over-irrigation;2.to improve irrigation accuracy using crop type, sowing date, last watering date, and reliable weather data;3.to support environmentally sustainable farming practices;4.to increase crop productivity by ensuring plants receive sufficient but not excessive moisture;5.to digitalize agricultural decision-making through modern AI-based tools;6.to provide educational guidance about irrigation principles, crop needs, and weather influence;7.to offer accessible analytics without requiring technical expertise.. 
+    Limit answers to 3-4 sentences."""
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-lite", 
+            contents=f"{system_instr}\n\nUser: {user_question}"
+        )
+        return response.text
+    except Exception as e:
+        print(f"DEBUG ERROR in Gemini Chat: {e}")
+        return "I'm having trouble connecting to my brain. Try again later!"
+
