@@ -5,7 +5,7 @@ import re
 import numpy as np
 from datetime import datetime, date
 import pandas as pd
-from chat.chat.gemini import ask_gemini, ask_gemini_chat
+from chat.chat.openai_client import ask_openai, ask_openai_chat
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
@@ -494,7 +494,7 @@ def predict():
         pred_mm = model.predict(features)[0]
         print("14. Модель отработала, pred_mm:", pred_mm)
 
-        explanation = ask_gemini(
+        explanation = ask_openai(
             crop="maize" if data['crop'] == 0 else "wheat",
             days_since=days_since,
             days_since_last_water=days_since_last_water,
@@ -591,7 +591,7 @@ def ai_chat():
     if not message:
         return jsonify({"error": "No message"}), 400
 
-    response_text = ask_gemini_chat(user_question=message)
+    response_text = ask_openai_chat(user_question=message)
 
     new_chat = AIChat(
         user_id=user_id,
