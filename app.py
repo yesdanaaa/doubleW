@@ -19,6 +19,7 @@ from datetime import timedelta
 import os
 import traceback
 
+
 app = Flask(__name__)
 
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)     # access — короткий
@@ -492,11 +493,11 @@ def predict():
         ]])
         print("12. Features сформированы:", features.shape)
         print("13. Запуск модели")
-        pred_mm = model.predict(features)[0]
+        pred_mm = float(model.predict(features)[0])
         print("14. Модель отработала, pred_mm:", pred_mm)
 
         explanation = ask_openai(
-            crop="maize" if data['crop'] == 0 else "wheat",
+            crop="maize" if crop == 0 else "wheat",
             days_since=days_since,
             days_since_last_water=days_since_last_water,
             temp_avg=temp_avg,
@@ -544,14 +545,16 @@ def predict():
             sowing_date=sowing_date_str,
             calculation_date=simulated_date_str,
             last_watering_date=last_watering_str,
-            water_mm=pred_mm
+            water_mm=float(pred_mm)
         )
         db.session.add(new_irrigation)
         db.session.commit()
 
         # Обновление water_used_mm у пользователя (добавляем pred_mm как сэкономленную воду)
         user = User.query.get(user_id)
-        user.water_used_mm += pred_mm  # пока что
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        user.water_used_mm = float(user.water_used_mm or 0.0) + float(pred_mm)
         db.session.commit()
 
         response = {
@@ -561,7 +564,7 @@ def predict():
             "phase_name": phase_name,
             "explanation": explanation,
             "calculation_date": simulated_date_str,
-            "crop": "maize" if data['crop'] == 0 else "wheat",
+            "crop": "maize" if crop == 0 else "wheat",
             "days_since": days_since,
             "days_since_last_water": days_since_last_water
         }
