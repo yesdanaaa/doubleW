@@ -17,6 +17,7 @@ from flask_jwt_extended import (
 )
 from datetime import timedelta
 import os
+import traceback
 
 app = Flask(__name__)
 
@@ -34,7 +35,7 @@ if database_url:
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///users.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = '169588ff245a116dc51f6b7402a22b8861e56f3ef07b5149155e8052a80822bf'
+app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -574,10 +575,15 @@ def predict():
         return jsonify(response)
     except KeyError as e:
         print("ОШИБКА В PREDICT:", str(e))
+        traceback.print_exc()
         return jsonify({"error": f"Отсутствует обязательное поле: {str(e)}"}), 400
     except ValueError as e:
+        print("ОШИБКА В PREDICT ValueError:", str(e))
+        traceback.print_exc()
         return jsonify({"error": f"Неверный формат даты или числа: {str(e)}"}), 400
     except Exception as e:
+        print("ОШИБКА В PREDICT Exception:", str(e))
+        traceback.print_exc()
         return jsonify({"error": f"Внутренняя ошибка: {str(e)}"}), 500
 
 # маршрут для чата с AI
