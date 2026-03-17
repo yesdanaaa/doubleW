@@ -85,6 +85,20 @@ class FarmerChat(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Irrigation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    crop = db.Column(db.String(50))
+    sowing_date = db.Column(db.String(20))
+    calculation_date = db.Column(db.String(20))
+    last_watering_date = db.Column(db.String(20))
+
+    water_mm = db.Column(db.Float)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Создание базы
 with app.app_context():
     db.create_all()
@@ -212,20 +226,6 @@ def update_irrigation_date():
         "message": "Дата полива обновлена",
         "date": date_str
     }), 200
-
-class Irrigation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    crop = db.Column(db.String(50))
-    sowing_date = db.Column(db.String(20))
-    calculation_date = db.Column(db.String(20))
-    last_watering_date = db.Column(db.String(20))
-
-    water_mm = db.Column(db.Float)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 @app.route('/get_sowing_date', methods=['GET'])
