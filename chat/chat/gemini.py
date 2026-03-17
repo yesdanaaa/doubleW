@@ -1,8 +1,10 @@
 import os
 from google import genai
 
-API_KEY_1 = os.getenv("API_KEY_1")
-API_KEY_2 = os.getenv("API_KEY_2")
+API_KEYS = [
+    os.getenv("API_KEY_1"),
+    os.getenv("API_KEY_2")
+]
 
 def ask_gemini(
     crop,
