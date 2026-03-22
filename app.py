@@ -288,6 +288,28 @@ def get_last_irrigation_date():
         "last_irrigation_date_real": user.last_irrigation_date_real.strftime("%Y-%m-%d %H:%M:%S") if user.last_irrigation_date_real else None
     }), 200
 
+from sqlalchemy import text
+
+@app.route('/fix_db', methods=['GET'])
+def fix_db():
+    try:
+        db.session.execute(text("""
+            ALTER TABLE "user"
+            ADD COLUMN IF NOT EXISTS avatar_type VARCHAR(20) DEFAULT 'water';
+        """))
+
+        db.session.execute(text("""
+            UPDATE "user"
+            SET avatar_type = 'water'
+            WHERE avatar_type IS NULL;
+        """))
+
+        db.session.commit()
+        return {"message": "Database fixed successfully"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}
+    
 @app.route("/community/messages", methods=["GET"])
 @jwt_required()
 def get_community_messages():
