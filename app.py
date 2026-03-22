@@ -19,12 +19,10 @@ import os
 import traceback
 from flask_socketio import SocketIO, emit, join_room
 from flask_jwt_extended import decode_token
-from datetime import datetime
-
 
 app = Flask(__name__)
-CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+CORS(app, resources={r"/*": {"origins": "https://doublew-1.onrender.com"}})
+socketio = SocketIO(app, cors_allowed_origins="https://doublew-1.onrender.com")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)     # access — короткий
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=180)       # refresh — длинный
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
@@ -65,7 +63,6 @@ class User(db.Model):
     sowing_date = db.Column(db.String(10), nullable=True)
     last_irrigation_date = db.Column(db.String(10), nullable=True)   #при регистрации
     last_irrigation_date_real = db.Column(db.DateTime, nullable=True) #кнопка высчитать
-    avatar_type = db.Column(db.String(20), default="water")
 
     water_used_mm = db.Column(db.Float, default=0.0)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -116,29 +113,6 @@ class Irrigation(db.Model):
 # Создание базы
 with app.app_context():
     db.create_all()
-
-@app.route('/set_avatar', methods=['POST'])
-@jwt_required()
-def set_avatar():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    data = request.get_json()
-    avatar_type = data.get("avatar_type")
-
-    if avatar_type not in ["water", "earth", "plant"]:
-        return jsonify({"error": "Invalid avatar type"}), 400
-
-    user.avatar_type = avatar_type
-    db.session.commit()
-
-    return jsonify({
-        "message": "Avatar updated",
-        "avatar_type": user.avatar_type
-    }), 200
 
 @app.route('/set_crop', methods=['POST'])
 @jwt_required()
@@ -288,27 +262,6 @@ def get_last_irrigation_date():
         "last_irrigation_date_real": user.last_irrigation_date_real.strftime("%Y-%m-%d %H:%M:%S") if user.last_irrigation_date_real else None
     }), 200
 
-from sqlalchemy import text
-
-@app.route('/fix_db', methods=['GET'])
-def fix_db():
-    try:
-        db.session.execute(text("""
-            ALTER TABLE "user"
-            ADD COLUMN IF NOT EXISTS avatar_type VARCHAR(20) DEFAULT 'water';
-        """))
-
-        db.session.execute(text("""
-            UPDATE "user"
-            SET avatar_type = 'water'
-            WHERE avatar_type IS NULL;
-        """))
-
-        db.session.commit()
-        return {"message": "Database fixed successfully"}
-    except Exception as e:
-        db.session.rollback()
-        return {"error": str(e)}
     
 @app.route("/community/messages", methods=["GET"])
 @jwt_required()
@@ -325,7 +278,6 @@ def get_community_messages():
             "text": msg.text,
             "time": msg.created_at.strftime("%H:%M"),
             "sent": str(msg.user_id) == str(current_user_id),
-            "avatar_type": User.query.get(msg.user_id).avatar_type if User.query.get(msg.user_id) else "water"
         })
 
     return jsonify(result), 200
@@ -388,8 +340,7 @@ def handle_send_message(data):
             "user": message.user_name,
             "text": message.text,
             "time": message.created_at.strftime("%H:%M"),
-            "user_id": user.id,
-            "avatar_type": user.avatar_type or "water"
+            "user_id": user.id
         }, room="farmers_community")
 
     except Exception as e:
@@ -427,8 +378,7 @@ def register():
     "access_token": access_token,
     "refresh_token": refresh_token,
     "user": {
-        "name": new_user.name,
-        "avatar_type": new_user.avatar_type or "water"}
+        "name": new_user.name}
     }), 201
 
 @app.route('/health')
@@ -454,8 +404,7 @@ def login():
             "access_token": access_token,
             "refresh_token": refresh_token,
             "user": {
-                "name": user.name,
-                "avatar_type": user.avatar_type or "water"
+                "name": user.name
             }
         }), 200
 

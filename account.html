@@ -589,9 +589,9 @@
     const avatarIcon = document.getElementById('avatarIcon');
 
     const icons = {
-      water: 'bx bx-droplet',
-      earth: 'bx bx-globe',
-      plant: 'bx bx-leaf'
+      water: '👩‍🌾',
+      earth: '👨‍🌾',
+      plant: '🧑‍🌾'
     };
 
     avatarIcon.className = icons[type] || icons.water;
@@ -603,21 +603,7 @@
     document.getElementById('avatarDropdown').classList.remove('show');
 
     const token = localStorage.getItem('access_token');
-    if (!token) return;
-
-    try {
-      await fetch(`${API_BASE}/set_avatar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ avatar_type: type })
-      });
-    } catch (err) {
-      console.error('Failed to save avatar:', err);
-    }
-  }
+    if (!token) return;}
 
     // Загрузка данных пользователя
     async function loadUserData() {
@@ -625,7 +611,7 @@
       const email = localStorage.getItem('userEmail') || 'user@example.com';
       const avatar = localStorage.getItem('userAvatar') || 'water';
 
-      document.getElementById('userNameDisplay').textContent = name;
+      document.getElementById('userNameDisplay').textContent = name; 
       document.getElementById('userEmailDisplay').textContent = email;
 
       changeAvatar(avatar);
@@ -645,7 +631,7 @@
             const waterLiters = stats.water_used_mm ? Math.round(stats.water_used_mm) : 0;
             document.getElementById('waterSaved').textContent = `${waterLiters}L`;
           } else if (res.status === 401) {
-            localStorage.removeItem('token');
+            localStorage.removeItem('access_token');
             alert('Session expired. Please login again.');
             window.location.href = 'login.html';
           }
@@ -690,4 +676,4 @@
     });
   </script>
 </body>
-</html>
+</html> 
