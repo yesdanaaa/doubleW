@@ -279,9 +279,10 @@ form.addEventListener('submit', async function(e) {
 
     if (response.ok) {
       // Сохраняем токены и email
-      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('refresh_token', data.refresh_token);
       localStorage.setItem('userEmail', email);
+      localStorage.setItem('userName', data.user.name);
 
       alert(__('login.success') || 'Login successful!');
       window.location.href = 'frontend.html';

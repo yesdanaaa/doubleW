@@ -502,7 +502,7 @@
 
   <script>
     const API_BASE = 'https://doublew.onrender.com';
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
 
     // Функция обновления переводов
     function updatePageTranslations() {
@@ -583,24 +583,41 @@
     }
 
     // Смена аватарки
-    function changeAvatar(type) {
-      localStorage.setItem('userAvatar', type);
-      const avatarIcon = document.getElementById('avatarIcon');
-      
-      const icons = {
-        'water': 'bx bx-droplet',
-        'earth': 'bx bx-globe',
-        'plant': 'bx bx-leaf'
-      };
-      
-      avatarIcon.className = icons[type] || icons.water;
-      
-      document.querySelectorAll('.avatar-option').forEach(opt => {
-        opt.classList.toggle('selected', opt.dataset.type === type);
+    async function changeAvatar(type) {
+    localStorage.setItem('userAvatar', type);
+
+    const avatarIcon = document.getElementById('avatarIcon');
+
+    const icons = {
+      water: 'bx bx-droplet',
+      earth: 'bx bx-globe',
+      plant: 'bx bx-leaf'
+    };
+
+    avatarIcon.className = icons[type] || icons.water;
+
+    document.querySelectorAll('.avatar-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.type === type);
+    });
+
+    document.getElementById('avatarDropdown').classList.remove('show');
+
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+      await fetch(`${API_BASE}/set_avatar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar_type: type })
       });
-      
-      document.getElementById('avatarDropdown').classList.remove('show');
+    } catch (err) {
+      console.error('Failed to save avatar:', err);
     }
+  }
 
     // Загрузка данных пользователя
     async function loadUserData() {

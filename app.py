@@ -3,7 +3,7 @@ from flask_cors import CORS
 import joblib
 import re
 import numpy as np
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import pandas as pd
 from chat.chat.openai_client import ask_openai, ask_openai_chat
 from flask_sqlalchemy import SQLAlchemy
@@ -15,13 +15,16 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity
 )
-from datetime import timedelta
 import os
 import traceback
+from flask_socketio import SocketIO, emit, join_room
+from flask_jwt_extended import decode_token
+from datetime import datetime
 
 
 app = Flask(__name__)
-
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)     # access — короткий
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=180)       # refresh — длинный
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
@@ -62,6 +65,7 @@ class User(db.Model):
     sowing_date = db.Column(db.String(10), nullable=True)
     last_irrigation_date = db.Column(db.String(10), nullable=True)   #при регистрации
     last_irrigation_date_real = db.Column(db.DateTime, nullable=True) #кнопка высчитать
+    avatar_type = db.Column(db.String(20), default="water")
 
     water_used_mm = db.Column(db.Float, default=0.0)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -86,6 +90,15 @@ class FarmerChat(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class CommunityMessage(db.Model):
+    __tablename__ = "community_messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_name = db.Column(db.String(120), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
 class Irrigation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -103,6 +116,29 @@ class Irrigation(db.Model):
 # Создание базы
 with app.app_context():
     db.create_all()
+
+@app.route('/set_avatar', methods=['POST'])
+@jwt_required()
+def set_avatar():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.get_json()
+    avatar_type = data.get("avatar_type")
+
+    if avatar_type not in ["water", "earth", "plant"]:
+        return jsonify({"error": "Invalid avatar type"}), 400
+
+    user.avatar_type = avatar_type
+    db.session.commit()
+
+    return jsonify({
+        "message": "Avatar updated",
+        "avatar_type": user.avatar_type
+    }), 200
 
 @app.route('/set_crop', methods=['POST'])
 @jwt_required()
@@ -252,6 +288,92 @@ def get_last_irrigation_date():
         "last_irrigation_date_real": user.last_irrigation_date_real.strftime("%Y-%m-%d %H:%M:%S") if user.last_irrigation_date_real else None
     }), 200
 
+@app.route("/community/messages", methods=["GET"])
+@jwt_required()
+def get_community_messages():
+    current_user_id = get_jwt_identity()
+
+    messages = CommunityMessage.query.order_by(CommunityMessage.created_at.asc()).all()
+
+    result = []
+    for msg in messages:
+        result.append({
+            "id": msg.id,
+            "user": msg.user_name,
+            "text": msg.text,
+            "time": msg.created_at.strftime("%H:%M"),
+            "sent": str(msg.user_id) == str(current_user_id),
+            "avatar_type": User.query.get(msg.user_id).avatar_type if User.query.get(msg.user_id) else "water"
+        })
+
+    return jsonify(result), 200
+
+@socketio.on("connect")
+def handle_connect(auth):
+    try:
+        if not auth or "token" not in auth:
+            return False
+
+        token = auth["token"]
+        decoded = decode_token(token)
+        user_id = decoded["sub"]
+
+        user = User.query.get(user_id)
+        if not user:
+            return False
+
+        join_room("farmers_community")
+
+        emit("connected", {"message": "Connected successfully"})
+
+    except Exception as e:
+        print("Socket connect error:", e)
+        return False
+
+@socketio.on("send_message")
+def handle_send_message(data):
+    try:
+        token = data.get("token")
+        text = (data.get("text") or "").strip()
+
+        if not token:
+            emit("error_message", {"error": "Missing token"})
+            return
+
+        if not text:
+            emit("error_message", {"error": "Message cannot be empty"})
+            return
+
+        decoded = decode_token(token)
+        user_id = decoded["sub"]
+
+        user = User.query.get(user_id)
+        if not user:
+            emit("error_message", {"error": "User not found"})
+            return
+
+        message = CommunityMessage(
+            user_id=user.id,
+            user_name=user.name,
+            text=text
+        )
+
+        db.session.add(message)
+        db.session.commit()
+
+        emit("new_message", {
+            "id": message.id,
+            "user": message.user_name,
+            "text": message.text,
+            "time": message.created_at.strftime("%H:%M"),
+            "user_id": user.id,
+            "avatar_type": user.avatar_type or "water"
+        }, room="farmers_community")
+
+    except Exception as e:
+        print("Send message error:", e)
+        emit("error_message", {"error": "Failed to send message"})
+
 # Регистрация
 @app.route('/register', methods=['POST'])
 def register():
@@ -281,7 +403,10 @@ def register():
     return jsonify({
     "message": "User registered successfully",
     "access_token": access_token,
-    "refresh_token": refresh_token
+    "refresh_token": refresh_token,
+    "user": {
+        "name": new_user.name,
+        "avatar_type": new_user.avatar_type or "water"}
     }), 201
 
 @app.route('/health')
@@ -302,7 +427,15 @@ def login():
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
 
-        return jsonify({"message": "Login successful", "access_token": access_token, "refresh_token": refresh_token}), 200
+        return jsonify({
+            "message": "Login successful",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": {
+                "name": user.name,
+                "avatar_type": user.avatar_type or "water"
+            }
+        }), 200
 
     return jsonify({"message": "Invalid credentials"}), 401
 
@@ -337,7 +470,6 @@ def refresh():
     new_access_token = create_access_token(identity=current_user_id)
     return jsonify({"access_token": new_access_token}), 200
 
-CORS(app)
 
 weather_df = None
 try:
@@ -671,3 +803,9 @@ def irrigation_history():
         "created_at": irr.created_at
     } for irr in irrigations]
     return jsonify({"history": history}), 200
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)

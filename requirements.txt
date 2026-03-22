@@ -11,5 +11,7 @@ requests-cache
 retry-requests
 scikit-learn
 psycopg2-binary
+flask-socketio
+eventlet
 gunicorn
 openai
