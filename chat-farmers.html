@@ -256,7 +256,6 @@
       </button>
     </div>
   </div>
-renderMessages
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
   const API_BASE = 'https://doublew.onrender.com';
@@ -349,7 +348,7 @@ renderMessages
     auth: {
       token: token
     },
-    transports: ['websocket', 'polling']
+    transports: ['polling', 'websocket']
   });
 
   socket.on('connect', () => {

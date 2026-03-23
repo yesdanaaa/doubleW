@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
@@ -307,45 +309,38 @@ def handle_connect(auth):
 @socketio.on("send_message")
 def handle_send_message(data):
     try:
+        # Берем токен из данных, которые прислал фронтенд
         token = data.get("token")
         text = (data.get("text") or "").strip()
 
-        if not token:
-            emit("error_message", {"error": "Missing token"})
+        if not token or not text:
             return
 
-        if not text:
-            emit("error_message", {"error": "Message cannot be empty"})
-            return
-
+        # Декодируем и ищем юзера
         decoded = decode_token(token)
         user_id = decoded["sub"]
-
         user = User.query.get(user_id)
-        if not user:
-            emit("error_message", {"error": "User not found"})
-            return
 
-        message = CommunityMessage(
-            user_id=user.id,
-            user_name=user.name,
-            text=text
-        )
+        if user:
+            # Сохраняем в базу данных CommunityMessage
+            new_msg = CommunityMessage(
+                user_id=user.id,
+                user_name=user.name,
+                text=text
+            )
+            db.session.add(new_msg)
+            db.session.commit()
 
-        db.session.add(message)
-        db.session.commit()
-
-        emit("new_message", {
-            "id": message.id,
-            "user": message.user_name,
-            "text": message.text,
-            "time": message.created_at.strftime("%H:%M"),
-            "user_id": user.id
-        }, room="farmers_community")
-
+            # Рассылаем ВСЕМ в комнате
+            emit("new_message", {
+                "id": new_msg.id,
+                "user": user.name,
+                "text": text,
+                "time": new_msg.created_at.strftime("%H:%M"),
+                "user_id": user.id
+            }, room="farmers_community")
     except Exception as e:
-        print("Send message error:", e)
-        emit("error_message", {"error": "Failed to send message"})
+        print(f"Chat Error: {e}")
 
 # Регистрация
 @app.route('/register', methods=['POST'])
@@ -776,5 +771,5 @@ def irrigation_history():
     return jsonify({"history": history}), 200
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port)
+    # Используем socketio.run только для локального запуска
+    socketio.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
