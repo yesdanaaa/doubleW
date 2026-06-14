@@ -10,8 +10,226 @@
   <script src="translations.js"></script>
   <script src="language.js"></script>
   <script src="language-switcher.js"></script>
+  <script src="auth.js"></script>
+
+<div class="wheat-bg">
+  <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    <g class="wheat-branch group-far">
+      <path class="wheat-stem" d="M300,600 C320,450 350,300 400,100" />
+      
+      <g transform="translate(400,100)">
+        <path d="M0,0 C-10,10 -20,20 -15,30 C-5,20 0,10 0,0" />
+        <path d="M0,0 C10,10 20,20 15,30 C5,20 0,10 0,0" />
+        <path d="M-15,35 C-25,50 -35,65 -25,75 C-15,65 -5,50 -15,35" />
+        <path d="M15,35 C25,50 35,65 25,75 C15,65 5,50 15,35" />
+        <path d="M-20,80 C-30,100 -40,120 -30,130 C-20,120 -10,100 -20,80" />
+        <path d="M20,80 C30,100 40,120 30,130 C20,120 10,100 20,80" />
+        
+        <path class="wheat-awn" d="M0,0 L-30,-50" />
+        <path class="wheat-awn" d="M0,0 L30,-50" />
+        <path class="wheat-awn" d="M-15,35 L-60,-10" />
+        <path class="wheat-awn" d="M15,35 L60,-10" />
+        <path class="wheat-awn" d="M-20,80 L-80,40" />
+        <path class="wheat-awn" d="M20,80 L80,40" />
+      </g>
+    </g>
+
+    <g class="wheat-branch group-mid branch-left">
+      <path class="wheat-stem" d="M150,600 C180,400 200,250 280,50" />
+      <g transform="translate(280,50)">
+        <path d="M0,0 C-10,10 -20,20 -15,30 C-5,20 0,10 0,0" />
+        <path d="M0,0 C10,10 20,20 15,30 C5,20 0,10 0,0" />
+        <path d="M-15,35 C-25,50 -35,65 -25,75 C-15,65 -5,50 -15,35" />
+        <path d="M15,35 C25,50 35,65 25,75 C15,65 5,50 15,35" />
+        <path class="wheat-awn" d="M0,0 L-40,-70" />
+        <path class="wheat-awn" d="M0,0 L40,-70" />
+        <path class="wheat-awn" d="M-15,35 L-70,-30" />
+        <path class="wheat-awn" d="M15,35 L70,-30" />
+      </g>
+    </g>
+
+    <g class="wheat-branch group-near branch-right">
+      <path class="wheat-stem" d="M600,600 C580,450 550,300 500,150" />
+      <g transform="translate(500,150)">
+        <path d="M0,0 C-10,10 -20,20 -15,30 C-5,20 0,10 0,0" />
+        <path d="M0,0 C10,10 20,20 15,30 C5,20 0,10 0,0" />
+        <path d="M-15,35 C-25,50 -35,65 -25,75 C-15,65 -5,50 -15,35" />
+        <path d="M15,35 C25,50 35,65 25,75 C15,65 5,50 15,35" />
+        <path class="wheat-awn" d="M0,0 L-40,-70" />
+        <path class="wheat-awn" d="M0,0 L40,-70" />
+        <path class="wheat-awn" d="M-15,35 L-70,-30" />
+        <path class="wheat-awn" d="M15,35 L70,-30" />
+      </g>
+    </g>
+    
+    <g class="wheat-branch group-far branch-extra">
+        <path class="wheat-stem" d="M700,600 C680,500 650,400 600,250" />
+        <g transform="translate(600,250)">
+          <path d="M0,0 C-10,10 -20,20 -15,30 C-5,20 0,10 0,0" />
+          <path d="M0,0 C10,10 20,20 15,30 C5,20 0,10 0,0" />
+          <path d="M-15,35 C-25,50 -35,65 -25,75 C-15,65 -5,50 -15,35" />
+          <path d="M15,35 C25,50 35,65 25,75 C15,65 5,50 15,35" />
+          <path class="wheat-awn" d="M0,0 L-30,-50" />
+          <path class="wheat-awn" d="M0,0 L30,-50" />
+          <path class="wheat-awn" d="M-15,35 L-60,-10" />
+          <path class="wheat-awn" d="M15,35 L60,-10" />
+        </g>
+      </g>
+  </svg>
+</div>
 
 <style>
+/* Контейнер */
+.wheat-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #f7faf7; /* Твой светлый фон */
+}
+
+.wheat-bg svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Базовая стилизация для всех веток */
+.wheat-branch {
+  fill: #4caf50; /* Зеленый цвет */
+  stroke: #4caf50;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  
+  /* Основа качания */
+  transform-origin: bottom center; 
+}
+
+/* Стилизация стебля и зерен */
+.wheat-stem {
+    stroke-width: 2.5;
+}
+
+/* Стилизация остей (усиков) - делаем их тоньше и бледнее */
+.wheat-awn {
+    stroke-width: 1;
+    opacity: 0.7; /* Внутренняя прозрачность */
+}
+
+/* Уровни прозрачности по группам (как на исходнике) */
+.group-near { opacity: 0.12; }
+.group-mid  { opacity: 0.08; }
+.group-far  { opacity: 0.04; }
+
+/* АНИМАЦИИ */
+
+/* Ближняя пшеница (качается чуть быстрее) */
+.branch-left {
+  animation: windSwayStrong 8s ease-in-out infinite alternate;
+}
+.branch-right {
+  animation: windSwayStrong 9s ease-in-out infinite alternate-reverse;
+}
+
+/* Дальняя пшеница (качается лениво) */
+.branch-extra, .group-far > g {
+    animation: windSwayLight 12s ease-in-out infinite alternate;
+}
+
+/* Ключевые кадры ветра */
+@keyframes windSwayStrong {
+  0% { transform: rotate(0deg) skewX(0deg); }
+  50% { transform: rotate(2deg) skewX(1deg); }
+  100% { transform: rotate(-1.5deg) skewX(-0.5deg); }
+}
+
+@keyframes windSwayLight {
+  0% { transform: rotate(0deg) skewX(0deg); }
+  50% { transform: rotate(1deg) skewX(0.5deg); }
+  100% { transform: rotate(-0.5deg) skewX(-0.2deg); }
+}
+</style>
+
+<style>
+/* ГОРИЗОНТАЛЬНАЯ ЛЕНТА ИНСАЙТОВ */
+    .insights-section {
+      margin-top: 15px;
+      width: 100%;
+      text-align: left;
+    }
+    .horizontal-scroll-container {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 5px 2px 20px;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+    .horizontal-scroll-container::-webkit-scrollbar { display: none; }
+    
+    .insight-card {
+      flex: 0 0 250px;
+      scroll-snap-align: start;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #e0f2f1;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .insight-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+    .card-image-wrapper {
+      width: 100%;
+      height: 130px;
+      overflow: hidden;
+      background: #e5e7eb;
+    }
+    .card-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-content {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .card-content h4 {
+      font-size: 0.95rem;
+      color: #333;
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+    .card-content p {
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #2f8f5b;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
   /* Карточка результата */
 .result-card {
     background: #ffffff;
@@ -107,13 +325,14 @@ body {
   margin: 0;
   min-height: 100vh;
   padding-top: 20px;
-  padding-bottom: 80px;
+  padding-bottom: 100px;
   padding-left: 15px;
   padding-right: 15px;
   background: #f4faf6;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  font-family: Arial, Helvetica, sans-serif;
 }
 /*Календарь*/
 .top-calendar 
@@ -358,22 +577,26 @@ button.calculate-btn:active {
     </div>
   </div>
 
+
+
 <script>
+
+  
   // Функция обновления переводов
   function updatePageTranslations() {
     const lang = localStorage.getItem('appLanguage') || 'en';
     
     // Обновляем заголовок календаря
     const wateringLog = document.getElementById('wateringLog');
-    if (wateringLog) wateringLog.textContent = __('wateringLog');
+    if (wateringLog) wateringLog.textContent = __('calculator.wateringLog');
     
     // Обновляем лейбл для даты расчета
     const calcLabel = document.querySelector('label[for="simDate"]');
-    if (calcLabel) calcLabel.textContent = __('calculationDate');
+    if (calcLabel) calcLabel.textContent = __('calculator.calculationDate');
     
     // Обновляем текст кнопки
     const calcBtn = document.querySelector('.calculate-btn');
-    if (calcBtn) calcBtn.textContent = __('calculate');
+    if (calcBtn) calcBtn.textContent = __('calculator.calculate');
     
     // Обновляем текст в карточке результата
     const resultHeader = document.querySelector('.result-header span');
@@ -394,6 +617,11 @@ button.calculate-btn:active {
     // Обновляем футер
     const footerText = document.querySelector('p[style*="color: #2f8f5b"]');
     if (footerText) footerText.textContent = __('saveWater');
+
+    const insTitle = document.getElementById('insTitle');
+    if (insTitle) insTitle.textContent = __('insights.title');
+    document.querySelectorAll('.btn-text').forEach(btn => {
+      btn.textContent = __('insights.readMore');});
   }
 
   // Подписываемся на изменения языка
@@ -411,10 +639,21 @@ button.calculate-btn:active {
     const monthYearEl = document.getElementById("monthYear");
 
     function updateMonthYear() {
-      monthYearEl.textContent = startDate.toLocaleDateString("ru-RU", {
-        month: "long",
-        year: "numeric"
-      });
+      const currentLang = localStorage.getItem("appLanguage") || "en";
+
+      const localeMap = {
+        en: "en-US",
+        ru: "ru-RU",
+        kz: "kk-KZ"
+      };
+
+      monthYearEl.textContent = startDate.toLocaleDateString(
+        localeMap[currentLang],
+        {
+          month: "long",
+          year: "numeric"
+        }
+      );
     }
     
     if (!datesContainer) {
@@ -493,7 +732,7 @@ button.calculate-btn:active {
 
         datesContainer.appendChild(dateDiv);
       }
-    }
+    } 
 
     prevBtn.addEventListener("click", () => {
       startDate.setDate(startDate.getDate() - 7);
@@ -666,6 +905,7 @@ button.calculate-btn:active {
       resetUI();
     }
   }
+  
 
   function resetUI() {
     const loader = document.getElementById("loader");
@@ -675,10 +915,67 @@ button.calculate-btn:active {
     btn.disabled = false;
   }
 </script>
+<div class="insights-section">
+      <h3 id="insTitle" style="color: #2f8f5b; font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; padding: 0 5px;">Insights</h3>
+      
+      <div class="horizontal-scroll-container">
+        
+        <div class="insight-card" onclick="goToDetails(3)">
+          <div class="card-image-wrapper">
+            <img src="агроприбыль.png" alt="агроприбыль">
+          </div>
+          <div class="card-content">
+            <h4 id="card3T">Прибыльные культуры</h4>
+            <p id="card3B">Что выгодно выращивать фермерам...</p>
+            <div class="card-footer"><span class="btn-text">Read details</span> <i class='bx bx-right-arrow-alt'></i></div>
+          </div>
+        </div>
+        
+        <div class="insight-card" onclick="goToDetails(1)">
+          <div class="card-image-wrapper">
+            <img src="пшеницакультура.png" alt="пшеница"> 
+          </div>
+          <div class="card-content">
+            <h4 id="card1T">Пшеница - История культуры</h4>
+            <p id="card1B">Пшеница - это основной продукт...</p>
+            <div class="card-footer"><span class="btn-text">Read details</span> <i class='bx bx-right-arrow-alt'></i></div>
+          </div>
+        </div>
 
+        <div class="insight-card" onclick="goToDetails(2)">
+          <div class="card-image-wrapper">
+            <img src="жүгеріотырғызу.png" alt="жүгері">
+          </div>
+          <div class="card-content">
+            <h4 id="card2T">Жүгері отырғызу жолдары</h4>
+            <p id="card2B">Жүгері – жарма тұқымдасына...</p>
+            <div class="card-footer"><span class="btn-text">Read details</span> <i class='bx bx-right-arrow-alt'></i></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   <p style="margin: 0; font-size: 13px; color: #565656b0; text-align: center;">Powered by Open-Meteo Weather Data</p>
   <p style="margin: 0; font-size: 12px; color: #2f8f5b; text-align: center;" id="footerSlogan">
     Save water. Save world.
   </p>
+  <script>
+    function goToDetails(id) {
+  // Создаем список ссылок для каждой карточки
+  const googleSitesLinks = {
+    1: "https://www.yara.kz/crop-nutrition/wheat/key-facts/historical-development-of-wheat-crop/",
+    3: "https://kk.healthy-food-near-me.com/when-and-how-to-plant-corn-seed-outdoors/",
+    3: "https://agrotime.kz/samye-pribylnye-kultury-dlja-vyrashhivanija-v-kazahstane-30571/"
+  };
+
+  // Получаем нужную ссылку по ID карточки
+  const targetUrl = googleSitesLinks[id];
+
+  if (targetUrl) {
+    // Открываем сайт в новой вкладке, чтобы пользователь не терял приложение
+    window.open(targetUrl, '_blank');
+  }
+}
+  </script>
 </body>
 </html>

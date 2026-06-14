@@ -7,10 +7,10 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-  <!-- Подключаем переводы и менеджер языка -->
   <script src="translations.js"></script>
   <script src="language.js"></script>
   <script src="language-switcher.js"></script>
+  <script src="auth.js"></script>
 
   <style>
     * {
@@ -174,22 +174,22 @@
     .avatar-option i {
       font-size: 30px;
     }
-    
+
+    /* Стили для выбора языка внутри карточки настроек */
     .language-selector {
       position: relative;
-      margin-top: 10px;
     }
     
     .current-language {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: #f9fafb;
       border-radius: 12px;
       cursor: pointer;
       border: 1px solid #e5e7eb;
-      min-width: 120px;
+      min-width: 130px;
     }
     
     .current-language span {
@@ -228,23 +228,17 @@
       padding: 12px 16px;
       cursor: pointer;
       transition: background 0.2s;
+      color: #1f2937;
     }
     
     .language-option:hover {
       background: #f3f4f6;
     }
     
-    .language-option:first-child {
-      border-radius: 12px 12px 0 0;
-    }
-    
-    .language-option:last-child {
-      border-radius: 0 0 12px 12px;
-    }
-    
     .language-option.active {
       background: #e6f7e6;
       color: #16a34a;
+      font-weight: bold;
     }
 
     .user-name {
@@ -294,6 +288,9 @@
     .stat-label {
       font-size: 0.875rem;
       opacity: 0.85;
+    }
+    .menu-card {
+      padding: 8px 0;
     }
     .menu-item {
       display: flex;
@@ -345,7 +342,7 @@
       background: #fef2f2;
     }
 
-    /* Нижняя навигация - только иконки */
+    /* Нижняя навигация */
     .bottom-nav {
       position: fixed;
       bottom: 20px;
@@ -377,6 +374,11 @@
     .nav-item.active {
       background: #2f8f5b;
       color: white;
+    }
+
+    /* ЖЕСТКОЕ СКРЫТИЕ СЛУЧАЙНЫХ ДУБЛИРУЮЩИХ КНОПОК В САМОМ ВЕРХУ СТРАНИЦЫ */
+    body > .dropdown, body > button, body > div[class*="lang-picker"] {
+      display: none !important;
     }
   </style>
 </head>
@@ -434,6 +436,7 @@
       </div>
     </div>
 
+    <!-- Карточка меню с правильной, красивой кнопкой выбора языка снизу -->
     <div class="menu-card">
       <button class="menu-item" onclick="openSettings()">
         <i class="bx bx-cog menu-icon"></i>
@@ -451,6 +454,7 @@
         <i class="bx bx-chevron-right" style="color: #9ca3af;"></i>
       </button>
       
+      <!-- Вот она, вернулась! -->
       <div class="menu-item" style="cursor: default; padding: 0;">
         <div style="display: flex; align-items: center; width: 100%; padding: 16px;">
           <i class="bx bx-globe menu-icon"></i>
@@ -458,24 +462,15 @@
           <div class="language-selector">
             <div class="current-language" onclick="toggleLanguageDropdown(event)">
               <span>
-                <i class='bx bx-flag' id="currentLangFlag"></i>
-                <span id="currentLangText">English</span>
+                <i class='bx bx-globe' style="color: #16a34a;"></i>
+                <span id="currentLangText">Русский</span>
               </span>
               <i class='bx bx-chevron-down' id="langArrow"></i>
             </div>
             <div class="language-dropdown" id="languageDropdown">
-              <div class="language-option" data-lang="en" onclick="changeLanguage('en')">
-                <i class='bx bx-flag'></i>
-                English
-              </div>
-              <div class="language-option" data-lang="ru" onclick="changeLanguage('ru')">
-                <i class='bx bx-flag'></i>
-                Русский
-              </div>
-              <div class="language-option" data-lang="kz" onclick="changeLanguage('kz')">
-                <i class='bx bx-flag'></i>
-                Қазақша
-              </div>
+              <div class="language-option" data-lang="en" onclick="changeLanguage('en')">English</div>
+              <div class="language-option" data-lang="ru" onclick="changeLanguage('ru')">Русский</div>
+              <div class="language-option" data-lang="kz" onclick="changeLanguage('kz')">Қазақша</div>
             </div>
           </div>
         </div>
@@ -487,7 +482,6 @@
     <button class="signout-btn" onclick="signOut()" id="signOutBtn"></button>
   </div>
 
-  <!-- Нижняя навигация - только иконки, без текста -->
   <div class="bottom-nav">
     <a href="frontend.html" class="nav-item" id="navHome">
       <i class='bx bx-home'></i>
@@ -501,55 +495,53 @@
   </div>
 
   <script>
-    const API_BASE = 'https://doublew.onrender.com';
-    const token = localStorage.getItem('access_token');
-
-    // Функция обновления переводов
     function updatePageTranslations() {
-      document.getElementById('pageTitle').textContent = __('profile.title');
-      document.getElementById('pageSubtitle').textContent = __('profile.subtitle');
-      document.getElementById('avatarChoose').textContent = __('profile.chooseAvatar');
-      document.getElementById('impactTitle').textContent = __('profile.yourImpact');
-      document.getElementById('daysLabel').textContent = __('profile.daysTracked');
-      document.getElementById('waterLabel').textContent = __('profile.waterSaved');
-      document.getElementById('settingsLabel').textContent = __('profile.appSettings');
-      document.getElementById('privacyLabel').textContent = __('profile.privacy');
-      document.getElementById('helpLabel').textContent = __('profile.help');
-      document.getElementById('languageLabel').textContent = __('profile.language');
-      document.getElementById('slogan').textContent = __('saveWater');
-      document.getElementById('signOutBtn').textContent = __('profile.signOut');
-      
-      // Обновляем crop tag
-      const crop = localStorage.getItem('selectedCrop') || __('profile.farmer');
-      document.getElementById('cropDisplay').textContent = `🌾 ${crop}`;
+      if (typeof __ === 'function') {
+        document.getElementById('pageTitle').textContent = __('profile.title');
+        document.getElementById('pageSubtitle').textContent = __('profile.subtitle');
+        document.getElementById('avatarChoose').textContent = __('profile.chooseAvatar');
+        document.getElementById('impactTitle').textContent = __('profile.yourImpact');
+        document.getElementById('daysLabel').textContent = __('profile.daysTracked');
+        document.getElementById('waterLabel').textContent = __('profile.waterSaved');
+        document.getElementById('settingsLabel').textContent = __('profile.appSettings');
+        document.getElementById('privacyLabel').textContent = __('profile.privacy');
+        document.getElementById('helpLabel').textContent = __('profile.help');
+        document.getElementById('languageLabel').textContent = __('profile.language'); 
+        document.getElementById('slogan').textContent = __('saveWater');
+        document.getElementById('signOutBtn').textContent = __('profile.signOut');
+        
+        const crop = localStorage.getItem('selectedCrop') || __('profile.farmer');
+        document.getElementById('cropDisplay').textContent = `🌾 ${crop}`;
+      }
     }
 
-    // Функция смены языка
+    // Смена языка в менеджере приложений
     function changeLanguage(lang) {
-      if (window.langManager.setLanguage(lang)) {
-        // Обновляем отображение текущего языка
+      if (window.langManager && window.langManager.setLanguage(lang)) {
         const langNames = {
           'en': 'English',
           'ru': 'Русский',
           'kz': 'Қазақша'
         };
-        document.getElementById('currentLangText').textContent = langNames[lang];
+
+        const langTextEl = document.getElementById('currentLangText');
+        if (langTextEl) {
+          langTextEl.textContent = langNames[lang];
+        }
         
-        // Обновляем активный класс
         document.querySelectorAll('.language-option').forEach(opt => {
           opt.classList.toggle('active', opt.dataset.lang === lang);
         });
         
-        // Обновляем переводы на странице
         updatePageTranslations();
         
-        // Закрываем дропдаун
-        document.getElementById('languageDropdown').classList.remove('show');
-        document.getElementById('langArrow').classList.remove('bx-chevron-up');
+        const dropdown = document.getElementById('languageDropdown');
+        const arrow = document.getElementById('langArrow');
+        if (dropdown) dropdown.classList.remove('show');
+        if (arrow) arrow.classList.remove('bx-chevron-up');
       }
     }
 
-    // Переключение дропдауна языка
     function toggleLanguageDropdown(event) {
       event.stopPropagation();
       const dropdown = document.getElementById('languageDropdown');
@@ -558,17 +550,17 @@
       arrow.classList.toggle('bx-chevron-up');
     }
 
-    // Закрытие дропдаунов при клике вне
     document.addEventListener('click', function(event) {
-      // Языковой дропдаун
+      // Закрытие выбора языка
       const langDropdown = document.getElementById('languageDropdown');
       const langSelector = document.querySelector('.current-language');
       if (langSelector && !langSelector.contains(event.target)) {
-        langDropdown.classList.remove('show');
-        document.getElementById('langArrow').classList.remove('bx-chevron-up');
+        if (langDropdown) langDropdown.classList.remove('show');
+        const arrow = document.getElementById('langArrow');
+        if (arrow) arrow.classList.remove('bx-chevron-up');
       }
-      
-      // Дропдаун аватарок
+
+      // Закрытие аватарок
       const avatarDropdown = document.getElementById('avatarDropdown');
       const editBtn = document.querySelector('.edit-avatar-btn');
       if (editBtn && !editBtn.contains(event.target) && avatarDropdown && !avatarDropdown.contains(event.target)) {
@@ -576,36 +568,31 @@
       }
     });
 
-    // Переключение дропдауна аватарок
     function toggleAvatarDropdown() {
       const dropdown = document.getElementById('avatarDropdown');
       dropdown.classList.toggle('show');
     }
 
-    // Смена аватарки
     async function changeAvatar(type) {
-    localStorage.setItem('userAvatar', type);
+      localStorage.setItem('userAvatar', type);
+      const avatarIcon = document.getElementById('avatarIcon');
 
-    const avatarIcon = document.getElementById('avatarIcon');
+      const icons = {
+        water: '👩‍🌾',
+        earth: '👨‍🌾',
+        plant: '🧑‍🌾'
+      };
 
-    const icons = {
-      water: '👩‍🌾',
-      earth: '👨‍🌾',
-      plant: '🧑‍🌾'
-    };
+      avatarIcon.className = '';
+      avatarIcon.textContent = icons[type] || icons.water;
 
-    avatarIcon.className = icons[type] || icons.water;
+      document.querySelectorAll('.avatar-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.type === type);
+      });
 
-    document.querySelectorAll('.avatar-option').forEach(opt => {
-      opt.classList.toggle('selected', opt.dataset.type === type);
-    });
+      document.getElementById('avatarDropdown').classList.remove('show');
+    }
 
-    document.getElementById('avatarDropdown').classList.remove('show');
-
-    const token = localStorage.getItem('access_token');
-    if (!token) return;}
-
-    // Загрузка данных пользователя
     async function loadUserData() {
       const name = localStorage.getItem('userName') || 'User';
       const email = localStorage.getItem('userEmail') || 'user@example.com';
@@ -615,43 +602,27 @@
       document.getElementById('userEmailDisplay').textContent = email;
 
       changeAvatar(avatar);
-
-      if (token) {
-        try {
-          const res = await fetch(`${API_BASE}/profile_stats`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (res.ok) {
+      
+      try {
+        if (typeof apiFetch === 'function') {
+          const res = await apiFetch("/profile_stats");
+          if (res && res.ok) {
             const stats = await res.json();
             document.getElementById('daysTracked').textContent = stats.days_tracked || '0';
             const waterLiters = stats.water_used_mm ? Math.round(stats.water_used_mm) : 0;
             document.getElementById('waterSaved').textContent = `${waterLiters}L`;
-          } else if (res.status === 401) {
-            localStorage.removeItem('access_token');
-            alert('Session expired. Please login again.');
-            window.location.href = 'login.html';
+          } else {
+            console.error('Сервер вернул ошибку:', res ? res.status : 'нет ответа');
           }
-        } catch (err) {
-          console.error('Network error:', err);
         }
+      } catch (err) {
+        console.error('Критическая ошибка при загрузке статистики:', err);
       }
     }
 
-    function openSettings() {
-      alert('Settings page coming soon!');
-    }
-
-    function openPrivacy() {
-      alert('Privacy settings coming soon!');
-    }
-
-    function openHelp() {
-      alert('Help page coming soon!');
-    }
+    function openSettings() { alert('Settings page coming soon!'); }
+    function openPrivacy() { alert('Privacy settings coming soon!'); }
+    function openHelp() { alert('Help page coming soon!'); }
 
     function signOut() {
       if (confirm('Are you sure you want to sign out?')) {
@@ -660,20 +631,25 @@
       }
     }
 
-    // Инициализация
     window.addEventListener('DOMContentLoaded', () => {
-      // Устанавливаем начальный язык
-      const savedLang = localStorage.getItem('appLanguage') || 'en';
+      const savedLang = localStorage.getItem('appLanguage') || 'ru';
       changeLanguage(savedLang);
-      
-      // Загружаем данные пользователя
       loadUserData();
       
-      // Подписываемся на изменения языка
       if (window.langManager) {
         window.langManager.subscribe(updatePageTranslations);
       }
+      
+      // На всякий случай чистим динамические дубликаты, если они полезут из скриптов
+      setTimeout(() => {
+        const topPickers = document.querySelectorAll('body > div:not(.container):not(.bottom-nav)');
+        topPickers.forEach(el => {
+          if (el.textContent.includes('Русский') || el.textContent.includes('English')) {
+            el.remove();
+          }
+        });
+      }, 100);
     });
   </script>
 </body>
-</html> 
+</html>

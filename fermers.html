@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmers Community Chat</title>
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #eff6ff, #f0fdfa, #ecfdf5);
+      min-height: 100vh;
+      padding-bottom: 90px;
+      color: #1f2937;
+    }
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-inner {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #4b5563;
+      cursor: pointer;
+      padding: 8px;
+    }
+    .header-info {
+      flex: 1;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .online {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    .messages-container {
+      max-width: 500px;
+      margin: 16px auto;
+      padding: 16px;
+      min-height: calc(100vh - 180px);
+    }
+    .message {
+      display: flex;
+      margin-bottom: 16px;
+      max-width: 80%;
+    }
+    .message.received {
+      justify-content: flex-start;
+    }
+    .message.sent {
+      justify-content: flex-end;
+    }
+    .message-inner {
+      display: flex;
+      gap: 8px;
+      max-width: 100%;
+      align-items: flex-end;
+    }
+    .message.sent .message-inner {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #e0f2fe, #dcfce7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      border: 1px solid #d1fae5;
+    }
+
+    .avatar i {
+    font-size: 18px;
+    }
+
+    .message-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    }
+
+    .message.sent .message-content {
+    align-items: flex-end;
+    }
+
+    .message.received .message-content {
+      align-items: flex-start;
+    }
+
+    .user-name {
+      font-size: 0.72rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+      padding: 0 4px;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .received .bubble {
+      background: white;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .sent .bubble {
+      background: #16a34a;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .user-name {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .time {
+      font-size: 0.6875rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .input-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid #e5e7eb;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      padding: 12px 16px;
+    }
+    .input-wrapper {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #messageInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 9999px;
+      font-size: 1rem;
+      outline: none;
+    }
+    #sendBtn {
+      width: 44px;
+      height: 44px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #sendBtn:disabled {
+      background: #a3e635;
+      cursor: not-allowed;
+    }
+    #sendBtn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 64px;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #2f8f5b;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+      z-index: 5;
+    }
+    .nav-item {
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-item i {
+      font-size: 28px;
+    }
+    .nav-item.active {
+      background: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-inner">
+      <button class="back-btn" onclick="window.location.href='chat.html'">
+        <i class="bx bx-arrow-back"></i>
+      </button>
+      <div class="header-info">
+        <div class="header-title">
+          <i class="bx bx-group" style="color: #16a34a; font-size: 20px;"></i>
+          Farmers Community
+        </div>
+        <div class="online">127 members online</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="messages-container" id="messages"></div>
+
+  <div class="input-area">
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        id="messageInput" 
+        placeholder="Type a message..." 
+        autocomplete="off"
+      >
+      <button id="sendBtn" disabled>
+        <i class="bx bx-send"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+  const API_BASE = 'https://doublew.onrender.com';
+
+  const messagesEl = document.getElementById('messages');
+  const input = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  const token = localStorage.getItem('access_token');
+  const currentUserName = localStorage.getItem('userName') || 'You';
+
+  if (!token) {
+    alert('Please log in first.');
+    window.location.href = 'login.html';
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.innerText = text;
+    return div.innerHTML;
+  }
+
+  function getAvatarIcon(type) {
+    const icons = {
+      water: 'bx bx-droplet',
+      earth: 'bx bx-globe',
+      plant: 'bx bx-leaf'
+    };
+    return icons[type] || 'bx bx-droplet';
+  }
+
+  function createMessageHTML(msg, isOwnMessage) {
+    return `
+      <div class="message ${isOwnMessage ? 'sent' : 'received'}">
+        <div class="message-inner">
+          <div class="avatar">
+            <i class="${getAvatarIcon(msg.avatar_type)}"></i>
+          </div>
+          <div class="message-content">
+            <div class="user-name">${escapeHtml(msg.user)}</div>
+            <div class="bubble">${escapeHtml(msg.text)}</div>
+            <div class="time">${escapeHtml(msg.time)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function appendMessage(msg, isOwnMessage) {
+    messagesEl.insertAdjacentHTML('beforeend', createMessageHTML(msg, isOwnMessage));
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function renderMessages(messages) {
+    messagesEl.innerHTML = '';
+    messages.forEach(msg => {
+      appendMessage(msg, msg.sent);
+    });
+  }
+
+  async function loadOldMessages() {
+    try {
+      const response = await fetch(`${API_BASE}/community/messages`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 401) {
+        alert('Session expired. Please log in again.');
+        localStorage.removeItem('access_token');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const data = await response.json();
+      renderMessages(data);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  }
+
+  const socket = io(API_BASE, {
+    auth: {
+      token: token
+    },
+    transports: ['websocket', 'polling']
+  });
+
+  socket.on('connect', () => {
+    console.log('Socket connected');
+  });
+
+  socket.on('new_message', (msg) => {
+    const isOwnMessage = msg.user === currentUserName;
+    appendMessage(msg, isOwnMessage);
+  });
+
+  socket.on('error_message', (data) => {
+    alert(data.error || 'Message error');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected');
+  });
+
+  function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    socket.emit('send_message', {
+      token: token,
+      text: text
+    });
+
+    input.value = '';
+    sendBtn.disabled = true;
+  }
+
+  sendBtn.onclick = sendMessage;
+
+  input.oninput = () => {
+    sendBtn.disabled = !input.value.trim();
+  };
+
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  loadOldMessages();
+</script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</body>
+</html>

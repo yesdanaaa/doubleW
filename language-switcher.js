@@ -32,13 +32,13 @@ class LanguageSwitcher {
 
     // Вставляем переключатель в нужное место (например, в header)
     document.addEventListener('DOMContentLoaded', () => {
-      const header = document.querySelector('header') || document.body;
-      if (!document.getElementById('globalLanguageSwitcher')) {
+      const header = document.querySelector('header');
+      
+      if (header && !document.getElementById('globalLanguageSwitcher')) {
         header.insertAdjacentHTML('afterbegin', switcherHTML);
       }
     });
   }
-
   addStyles() {
     const styles = `
       .language-switcher {

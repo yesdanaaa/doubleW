@@ -55,6 +55,13 @@ def custom_invalid_token_response(reason):
     # Этот код сработает, если токен есть, но он не правильный (ошибка 422)
     return jsonify({"error": "invalid_token", "message": reason}), 422
 
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        "error": "token_expired",
+        "message": "Access token has expired"
+    }), 401
+
 # Модель пользователя
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -502,6 +509,7 @@ def predict():
     if model is None:
         return jsonify({"error": "Модель не загружена"}), 500
     data = request.get_json()
+
     crop_val = data.get("crop")
 
     if crop_val in [0, "0", "Maize", "maize"]:
@@ -772,4 +780,4 @@ def irrigation_history():
 
 if __name__ == "__main__":
     # Используем socketio.run только для локального запуска
-    socketio.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    socketio.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)

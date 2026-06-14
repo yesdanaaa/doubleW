@@ -33,9 +33,9 @@ const translations = {
       aiAssistant: 'AI assistant',
       statusAI: 'Online',
       quickTips: 'Quick tips',
-      shareX: '• Share your irrigation experiences with other farmers',
-      askQ:'• Ask the AI about optimal watering schedules',
-      learnM: '• Learn about water conservation techniques',
+      share: '• Share your irrigation experiences with other farmers',
+      ask:'• Ask the AI about optimal watering schedules',
+      learn: '• Learn about water conservation techniques',
       onlineFarmers: 'Online farmers',
       welcomeMessage: "Hello! I'm your AI irrigation assistant. I can help you with questions about watering schedules, crop care, and water conservation. How can I help you today?",
       suggestedQuestions: "Suggested questions:",
@@ -55,7 +55,7 @@ const translations = {
       waterNeeded: 'Water needed',
       phase: 'Growth phase',
       explanation: 'Explanation',
-      wateringLog: 'Watering Log', //'Журнал полива'
+      wateringLog: 'Irrigation Calendar', //'Журнал полива'
       calculationDate: 'Calculation Date:', //'Дата расчета:'
       calculate: 'Calculate Irrigation', //'Рассчитать полив'
       recommendedWatering: 'Recommended Watering', //'Рекомендуемый полив'
@@ -70,6 +70,13 @@ const translations = {
       pleaseLogin: 'Please log in', //'Войдите в аккаунт'
       sessionExpired: 'Session expired. Please login again.' //'Сессия истекла'
     },
+
+    insights: {
+      title: 'Insights',
+      readMore: 'Read details'
+    },
+
+    
     
     // Страница логина (login.html)
     login: {
@@ -150,9 +157,9 @@ const translations = {
       onlineFarmers: 'Фермеры онлайн',
       statusAI: 'В сети',
       quickTips: 'Краткие советы',
-      shareX: '• Поделитесь своим опытом в области орошения с другими фермерами',
-      askQ:'• Спросите у ИИ об оптимальном графике полива.',
-      learnM: '• Узнайте о методах экономии воды.',
+      share: '• Поделитесь своим опытом в области орошения с другими фермерами',
+      ask:'• Спросите у ИИ об оптимальном графике полива.',
+      learn: '• Узнайте о методах экономии воды.',
       welcomeMessage: "Здравствуйте! Я ваш AI-помощник по поливу. Я могу помочь с вопросами о графике полива, уходе за культурами и экономии воды. Чем я могу помочь вам сегодня?",
       suggestedQuestions: "Рекомендуемые вопросы:",
       bestTimeToWater: "Когда лучше всего поливать?",
@@ -166,14 +173,13 @@ const translations = {
       title: 'Калькулятор полива',
       subtitle: 'Рассчитайте необходимое количество воды на сегодня',
       selectDate: 'Выберите дату',
-      calculate: 'Рассчитать',
       result: 'Результат',
       waterNeeded: 'Необходимо воды',
       phase: 'Фаза роста',
       explanation: 'Объяснение',
       wateringLog: 'Журнал полива',
       calculationDate: 'Дата расчета:',
-      calculateIrrigation: 'Рассчитать полив',
+      calculate: 'Рассчитать полив',
       recommendedWatering: 'Рекомендуемый полив',
       progress: 'Прогресс',
       daysFromSowing: 'Дней после посева',
@@ -184,6 +190,11 @@ const translations = {
       selectWateringDate: 'Выберите дату полива',
       pleaseLogin: 'Войдите в аккаунт',
       sessionExpired: 'Сессия истекла. Пожалуйста, войдите заново.'
+    },
+
+    insights: {
+      title: 'Статьи и советы',
+      readMore: 'Подробнее'
     },
     
     // Страница логина
@@ -252,6 +263,10 @@ const translations = {
     
     // Страница чата
     chat: {
+      quickTips: 'Пайдалы кеңестер',
+      share: '• Суару тәжірибеңізбен басқа фермерлермен бөлісіңіз',
+      ask: '• Жасанды интеллектен оңтайлы суару кестесі туралы сұраңыз',
+      learn: '• Суды үнемдеу әдістері туралы біліңіз',
       title: 'Қауымдастық чаты',
       subtitle: 'Басқа фермерлермен байланысыңыз',
       farmerChat: 'Фермерлер чаты',
@@ -272,14 +287,13 @@ const translations = {
       title: 'Суару калькуляторы',
       subtitle: 'Бүгінгі қажетті су мөлшерін есептеу',
       selectDate: 'Күнді таңдаңыз',
-      calculate: 'Есептеу',
       result: 'Нәтиже',
       waterNeeded: 'Қажет су',
       phase: 'Өсу кезеңі',
       explanation: 'Түсіндірме',
       wateringLog: 'Суару журналы',
       calculationDate: 'Есептеу күні:',
-      calculateIrrigation: 'Суаруды есептеу',
+      calculate: 'Суаруды есептеу',
       recommendedWatering: 'Ұсынылатын суару',
       progress: 'Прогресс',
       daysFromSowing: 'Егілгеннен бері күн',
@@ -290,6 +304,11 @@ const translations = {
       selectWateringDate: 'Кемінде бір суару күнін таңдаңыз',
       pleaseLogin: 'Парақшаңызға кіріңіз',
       sessionExpired: 'Сессия аяқталды. Қайта кіріңіз.'
+    },
+
+    insights: {
+      title: 'Мақалалар мен кеңестер',
+      readMore: 'Толығырақ'
     },
     
     // Страница логина
