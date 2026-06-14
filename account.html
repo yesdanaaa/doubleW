@@ -7,10 +7,10 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
+  <!-- Подключаем переводы и менеджер языка -->
   <script src="translations.js"></script>
   <script src="language.js"></script>
   <script src="language-switcher.js"></script>
-  <script src="auth.js"></script>
 
   <style>
     * {
@@ -384,7 +384,7 @@
 </head>
 <body>
 
-  <div class="container">
+<div class="container">
     <div style="margin-bottom: 32px;">
       <h1 id="pageTitle"></h1>
       <p class="subtitle" id="pageSubtitle"></p>
@@ -482,6 +482,7 @@
     <button class="signout-btn" onclick="signOut()" id="signOutBtn"></button>
   </div>
 
+  <!-- Нижняя навигация - только иконки, без текста -->
   <div class="bottom-nav">
     <a href="frontend.html" class="nav-item" id="navHome">
       <i class='bx bx-home'></i>
@@ -495,53 +496,55 @@
   </div>
 
   <script>
+    const API_BASE = 'https://doublew.onrender.com';
+    const token = localStorage.getItem('access_token');
+
+    // Функция обновления переводов
     function updatePageTranslations() {
-      if (typeof __ === 'function') {
-        document.getElementById('pageTitle').textContent = __('profile.title');
-        document.getElementById('pageSubtitle').textContent = __('profile.subtitle');
-        document.getElementById('avatarChoose').textContent = __('profile.chooseAvatar');
-        document.getElementById('impactTitle').textContent = __('profile.yourImpact');
-        document.getElementById('daysLabel').textContent = __('profile.daysTracked');
-        document.getElementById('waterLabel').textContent = __('profile.waterSaved');
-        document.getElementById('settingsLabel').textContent = __('profile.appSettings');
-        document.getElementById('privacyLabel').textContent = __('profile.privacy');
-        document.getElementById('helpLabel').textContent = __('profile.help');
-        document.getElementById('languageLabel').textContent = __('profile.language'); 
-        document.getElementById('slogan').textContent = __('saveWater');
-        document.getElementById('signOutBtn').textContent = __('profile.signOut');
-        
-        const crop = localStorage.getItem('selectedCrop') || __('profile.farmer');
-        document.getElementById('cropDisplay').textContent = `🌾 ${crop}`;
-      }
+      document.getElementById('pageTitle').textContent = __('profile.title');
+      document.getElementById('pageSubtitle').textContent = __('profile.subtitle');
+      document.getElementById('avatarChoose').textContent = __('profile.chooseAvatar');
+      document.getElementById('impactTitle').textContent = __('profile.yourImpact');
+      document.getElementById('daysLabel').textContent = __('profile.daysTracked');
+      document.getElementById('waterLabel').textContent = __('profile.waterSaved');
+      document.getElementById('settingsLabel').textContent = __('profile.appSettings');
+      document.getElementById('privacyLabel').textContent = __('profile.privacy');
+      document.getElementById('helpLabel').textContent = __('profile.help');
+      document.getElementById('languageLabel').textContent = __('profile.language');
+      document.getElementById('slogan').textContent = __('saveWater');
+      document.getElementById('signOutBtn').textContent = __('profile.signOut');
+      
+      // Обновляем crop tag
+      const crop = localStorage.getItem('selectedCrop') || __('profile.farmer');
+      document.getElementById('cropDisplay').textContent = `🌾 ${crop}`;
     }
 
-    // Смена языка в менеджере приложений
+    // Функция смены языка
     function changeLanguage(lang) {
-      if (window.langManager && window.langManager.setLanguage(lang)) {
+      if (window.langManager.setLanguage(lang)) {
+        // Обновляем отображение текущего языка
         const langNames = {
           'en': 'English',
           'ru': 'Русский',
           'kz': 'Қазақша'
         };
-
-        const langTextEl = document.getElementById('currentLangText');
-        if (langTextEl) {
-          langTextEl.textContent = langNames[lang];
-        }
+        document.getElementById('currentLangText').textContent = langNames[lang];
         
+        // Обновляем активный класс
         document.querySelectorAll('.language-option').forEach(opt => {
           opt.classList.toggle('active', opt.dataset.lang === lang);
         });
         
+        // Обновляем переводы на странице
         updatePageTranslations();
         
-        const dropdown = document.getElementById('languageDropdown');
-        const arrow = document.getElementById('langArrow');
-        if (dropdown) dropdown.classList.remove('show');
-        if (arrow) arrow.classList.remove('bx-chevron-up');
+        // Закрываем дропдаун
+        document.getElementById('languageDropdown').classList.remove('show');
+        document.getElementById('langArrow').classList.remove('bx-chevron-up');
       }
     }
 
+    // Переключение дропдауна языка
     function toggleLanguageDropdown(event) {
       event.stopPropagation();
       const dropdown = document.getElementById('languageDropdown');
@@ -550,17 +553,17 @@
       arrow.classList.toggle('bx-chevron-up');
     }
 
+    // Закрытие дропдаунов при клике вне
     document.addEventListener('click', function(event) {
-      // Закрытие выбора языка
+      // Языковой дропдаун
       const langDropdown = document.getElementById('languageDropdown');
       const langSelector = document.querySelector('.current-language');
       if (langSelector && !langSelector.contains(event.target)) {
-        if (langDropdown) langDropdown.classList.remove('show');
-        const arrow = document.getElementById('langArrow');
-        if (arrow) arrow.classList.remove('bx-chevron-up');
+        langDropdown.classList.remove('show');
+        document.getElementById('langArrow').classList.remove('bx-chevron-up');
       }
-
-      // Закрытие аватарок
+      
+      // Дропдаун аватарок
       const avatarDropdown = document.getElementById('avatarDropdown');
       const editBtn = document.querySelector('.edit-avatar-btn');
       if (editBtn && !editBtn.contains(event.target) && avatarDropdown && !avatarDropdown.contains(event.target)) {
@@ -568,31 +571,35 @@
       }
     });
 
+    // Переключение дропдауна аватарок
     function toggleAvatarDropdown() {
       const dropdown = document.getElementById('avatarDropdown');
       dropdown.classList.toggle('show');
     }
 
     async function changeAvatar(type) {
-      localStorage.setItem('userAvatar', type);
-      const avatarIcon = document.getElementById('avatarIcon');
+    localStorage.setItem('userAvatar', type);
 
-      const icons = {
-        water: '👩‍🌾',
-        earth: '👨‍🌾',
-        plant: '🧑‍🌾'
-      };
+    const avatarIcon = document.getElementById('avatarIcon');
 
-      avatarIcon.className = '';
-      avatarIcon.textContent = icons[type] || icons.water;
+    const icons = {
+      water: '👩‍🌾',
+      earth: '👨‍🌾',
+      plant: '🧑‍🌾'
+    };
 
-      document.querySelectorAll('.avatar-option').forEach(opt => {
-        opt.classList.toggle('selected', opt.dataset.type === type);
-      });
+    avatarIcon.className = icons[type] || icons.water;
 
-      document.getElementById('avatarDropdown').classList.remove('show');
-    }
+    document.querySelectorAll('.avatar-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.type === type);
+    });
 
+    document.getElementById('avatarDropdown').classList.remove('show');
+
+    const token = localStorage.getItem('access_token');
+    if (!token) return;}
+
+    // Загрузка данных пользователя
     async function loadUserData() {
       const name = localStorage.getItem('userName') || 'User';
       const email = localStorage.getItem('userEmail') || 'user@example.com';
@@ -602,27 +609,43 @@
       document.getElementById('userEmailDisplay').textContent = email;
 
       changeAvatar(avatar);
-      
-      try {
-        if (typeof apiFetch === 'function') {
-          const res = await apiFetch("/profile_stats");
-          if (res && res.ok) {
+
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE}/profile_stats`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (res.ok) {
             const stats = await res.json();
             document.getElementById('daysTracked').textContent = stats.days_tracked || '0';
             const waterLiters = stats.water_used_mm ? Math.round(stats.water_used_mm) : 0;
             document.getElementById('waterSaved').textContent = `${waterLiters}L`;
-          } else {
-            console.error('Сервер вернул ошибку:', res ? res.status : 'нет ответа');
+          } else if (res.status === 401) {
+            localStorage.removeItem('access_token');
+            alert('Session expired. Please login again.');
+            window.location.href = 'login.html';
           }
+        } catch (err) {
+          console.error('Network error:', err);
         }
-      } catch (err) {
-        console.error('Критическая ошибка при загрузке статистики:', err);
       }
     }
 
-    function openSettings() { alert('Settings page coming soon!'); }
-    function openPrivacy() { alert('Privacy settings coming soon!'); }
-    function openHelp() { alert('Help page coming soon!'); }
+    function openSettings() {
+      alert('Settings page coming soon!');
+    }
+
+    function openPrivacy() {
+      alert('Privacy settings coming soon!');
+    }
+
+    function openHelp() {
+      alert('Help page coming soon!');
+    }
 
     function signOut() {
       if (confirm('Are you sure you want to sign out?')) {
@@ -631,24 +654,19 @@
       }
     }
 
+    // Инициализация
     window.addEventListener('DOMContentLoaded', () => {
-      const savedLang = localStorage.getItem('appLanguage') || 'ru';
+      // Устанавливаем начальный язык
+      const savedLang = localStorage.getItem('appLanguage') || 'en';
       changeLanguage(savedLang);
+      
+      // Загружаем данные пользователя
       loadUserData();
       
+      // Подписываемся на изменения языка
       if (window.langManager) {
         window.langManager.subscribe(updatePageTranslations);
       }
-      
-      // На всякий случай чистим динамические дубликаты, если они полезут из скриптов
-      setTimeout(() => {
-        const topPickers = document.querySelectorAll('body > div:not(.container):not(.bottom-nav)');
-        topPickers.forEach(el => {
-          if (el.textContent.includes('Русский') || el.textContent.includes('English')) {
-            el.remove();
-          }
-        });
-      }, 100);
     });
   </script>
 </body>

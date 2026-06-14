@@ -10,9 +10,8 @@
   <script src="translations.js"></script>
   <script src="language.js"></script>
   <script src="language-switcher.js"></script>
-  <script src="auth.js"></script>
 
-<div class="wheat-bg">
+  <div class="wheat-bg">
   <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
     <g class="wheat-branch group-far">
       <path class="wheat-stem" d="M300,600 C320,450 350,300 400,100" />
@@ -553,7 +552,6 @@ button.calculate-btn:active {
 
 </head>
 <body>
-  
   <div class="bottom-nav">
     <a href="frontend.html" class="nav-item active">
       <i class='bx bx-home'></i>
@@ -577,15 +575,10 @@ button.calculate-btn:active {
     </div>
   </div>
 
-
-
 <script>
-
-  
   // Функция обновления переводов
   function updatePageTranslations() {
     const lang = localStorage.getItem('appLanguage') || 'en';
-    
     // Обновляем заголовок календаря
     const wateringLog = document.getElementById('wateringLog');
     if (wateringLog) wateringLog.textContent = __('calculator.wateringLog');
@@ -624,6 +617,40 @@ button.calculate-btn:active {
       btn.textContent = __('insights.readMore');});
   }
 
+    const lang = localStorage.getItem('appLanguage') || 'en';
+    
+    // Обновляем заголовок календаря
+    const wateringLog = document.getElementById('wateringLog');
+    if (wateringLog) wateringLog.textContent = __('wateringLog');
+    
+    // Обновляем лейбл для даты расчета
+    const calcLabel = document.querySelector('label[for="simDate"]');
+    if (calcLabel) calcLabel.textContent = __('calculationDate');
+    
+    // Обновляем текст кнопки
+    const calcBtn = document.querySelector('.calculate-btn');
+    if (calcBtn) calcBtn.textContent = __('calculate');
+    
+    // Обновляем текст в карточке результата
+    const resultHeader = document.querySelector('.result-header span');
+    if (resultHeader) resultHeader.textContent = __('recommendedWatering');
+    
+    const phaseLabel = document.querySelector('.info-item:nth-child(1)');
+    if (phaseLabel) phaseLabel.childNodes[0].textContent = __('phase') + ' ';
+    
+    const progressLabel = document.querySelector('.info-item:nth-child(2)');
+    if (progressLabel) progressLabel.childNodes[0].textContent = __('progress') + ' ';
+    
+    const daysSowingLabel = document.querySelector('.info-item:nth-child(3)');
+    if (daysSowingLabel) daysSowingLabel.childNodes[0].textContent = __('daysFromSowing') + ' ';
+    
+    const lastWaterLabel = document.querySelector('.info-item:nth-child(4)');
+    if (lastWaterLabel) lastWaterLabel.childNodes[0].textContent = __('lastWatered') + ' ';
+    
+    // Обновляем футер
+    const footerText = document.querySelector('p[style*="color: #2f8f5b"]');
+    if (footerText) footerText.textContent = __('saveWater');
+
   // Подписываемся на изменения языка
   if (window.langManager) {
     window.langManager.subscribe(updatePageTranslations);
@@ -655,6 +682,7 @@ button.calculate-btn:active {
         }
       );
     }
+    
     
     if (!datesContainer) {
       console.error("Element with id='dates' not found");
@@ -732,7 +760,7 @@ button.calculate-btn:active {
 
         datesContainer.appendChild(dateDiv);
       }
-    } 
+    }
 
     prevBtn.addEventListener("click", () => {
       startDate.setDate(startDate.getDate() - 7);
@@ -860,7 +888,7 @@ button.calculate-btn:active {
     };
   
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       if (!token) {
         alert(__('pleaseLogin') || "Пожалуйста, войдите в аккаунт");
         window.location.href = 'login.html';
@@ -905,7 +933,6 @@ button.calculate-btn:active {
       resetUI();
     }
   }
-  
 
   function resetUI() {
     const loader = document.getElementById("loader");
@@ -964,7 +991,7 @@ button.calculate-btn:active {
   // Создаем список ссылок для каждой карточки
   const googleSitesLinks = {
     1: "https://www.yara.kz/crop-nutrition/wheat/key-facts/historical-development-of-wheat-crop/",
-    3: "https://kk.healthy-food-near-me.com/when-and-how-to-plant-corn-seed-outdoors/",
+    2: "https://kk.healthy-food-near-me.com/when-and-how-to-plant-corn-seed-outdoors/",
     3: "https://agrotime.kz/samye-pribylnye-kultury-dlja-vyrashhivanija-v-kazahstane-30571/"
   };
 
